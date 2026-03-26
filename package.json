@@ -1,0 +1,25 @@
+{
+  "name": "@zeropress/preview-data-validator",
+  "version": "0.1.0",
+  "description": "Shared ZeroPress preview data validation core",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js",
+    "./preview-data.v0.2.schema.json": "./src/preview-data.v0.2.schema.json"
+  },
+  "types": "./src/index.d.ts",
+  "files": [
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeropress-app/zeropress-preview-data-validator.git"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
