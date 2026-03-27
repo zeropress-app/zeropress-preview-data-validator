@@ -143,6 +143,14 @@ test('validatePreviewData rejects extra root keys but allows extra site keys', (
   assert.equal(data.site.custom_setting, 'value');
 });
 
+test('validatePreviewData allows content category description to be omitted', () => {
+  const data = createValidPreviewData();
+  delete data.content.categories[0].description;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
   data.version = '0.1';

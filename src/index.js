@@ -269,10 +269,10 @@ function isOptionalKey(path, key) {
   if (path === 'site') return key === 'logo' || key === 'social';
   if (path.endsWith('.index')) return false;
   if (path.endsWith('.archive')) return key === 'categories' || key === 'tags';
-  if (path.includes('categories[')) return key === 'categories';
-  if (path.includes('tags[')) return key === 'tags';
-  if (path.includes('.posts[')) return key === 'author_avatar' || key === 'featured_image';
-  if (path.includes('.categories[')) return key === 'description';
+  if (path.startsWith('routes.categories[')) return key === 'categories';
+  if (path.startsWith('routes.tags[')) return key === 'tags';
+  if (path.startsWith('content.posts[')) return key === 'author_avatar' || key === 'featured_image';
+  if (path.startsWith('content.categories[')) return key === 'description';
   return false;
 }
 
