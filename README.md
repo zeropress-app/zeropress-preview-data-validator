@@ -1,5 +1,9 @@
 # @zeropress/preview-data-validator
 
+![npm](https://img.shields.io/npm/v/%40zeropress%2Fpreview-data-validator)
+![license](https://img.shields.io/npm/l/%40zeropress%2Fpreview-data-validator)
+![node](https://img.shields.io/node/v/%40zeropress%2Fpreview-data-validator)
+
 Shared validation core for ZeroPress preview data v0.2.
 
 This package is the canonical runtime contract for preview payloads consumed by:
