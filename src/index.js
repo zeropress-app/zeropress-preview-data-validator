@@ -1,4 +1,4 @@
-export const PREVIEW_DATA_VERSION = '0.2';
+export const PREVIEW_DATA_VERSION = '0.3';
 
 export function validatePreviewData(data) {
   const errors = [];
@@ -6,7 +6,7 @@ export function validatePreviewData(data) {
   validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'routes']);
 
   if (!errors.length) {
-    validateLiteral(data.version, '0.2', 'version', 'INVALID_VERSION', errors);
+    validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
     validateNonEmptyString(data.generator, 'generator', 'INVALID_GENERATOR', errors);
     validateDateTimeString(data.generated_at, 'generated_at', 'INVALID_GENERATED_AT', errors);
 
@@ -86,13 +86,11 @@ function validateRoutes(routes, path, errors) {
     return;
   }
 
-  validateRouteBlocks(routes.index, `${path}.index`, errors, {
-    requiredKeys: ['posts', 'pagination', 'categories', 'tags'],
-    allowKeys: ['posts', 'pagination', 'categories', 'tags'],
+  validateArray(routes.index, `${path}.index`, 'INVALID_INDEX_ROUTES', errors, (entry, index) => {
+    validateIndexRoute(entry, `${path}.index[${index}]`, errors);
   });
-  validateRouteBlocks(routes.archive, `${path}.archive`, errors, {
-    requiredKeys: ['posts', 'pagination'],
-    allowKeys: ['posts', 'pagination', 'categories', 'tags'],
+  validateArray(routes.archive, `${path}.archive`, 'INVALID_ARCHIVE_ROUTES', errors, (entry, index) => {
+    validateArchiveRoute(entry, `${path}.archive[${index}]`, errors);
   });
   validateArray(routes.categories, `${path}.categories`, 'INVALID_CATEGORY_ROUTES', errors, (entry, index) => {
     validateCategoryRoute(entry, `${path}.categories[${index}]`, errors);
@@ -192,48 +190,61 @@ function validatePreviewTag(tag, path, errors) {
   validateInteger(tag.postCount, `${path}.postCount`, 'INVALID_TAG_POST_COUNT', errors, { minimum: 0 });
 }
 
-function validateCategoryRoute(route, path, errors) {
-  validateClosedObject(route, path, errors, ['slug', 'posts', 'pagination', 'categories']);
-  if (!isObject(route)) {
-    return;
-  }
+function validateIndexRoute(route, path, errors) {
+  validatePaginatedRoute(route, path, errors, {
+    allowedKeys: ['path', 'page', 'totalPages', 'posts', 'pagination', 'categories', 'tags'],
+    requiredKeys: ['path', 'page', 'totalPages', 'posts', 'pagination', 'categories', 'tags'],
+    routeCodePrefix: 'INDEX_ROUTE',
+  });
+}
 
-  validateNonEmptyString(route.slug, `${path}.slug`, 'INVALID_CATEGORY_ROUTE_SLUG', errors);
-  validateString(route.posts, `${path}.posts`, 'INVALID_CATEGORY_ROUTE_POSTS', errors);
-  validateString(route.pagination, `${path}.pagination`, 'INVALID_CATEGORY_ROUTE_PAGINATION', errors);
-  if (route.categories !== undefined) {
-    validateString(route.categories, `${path}.categories`, 'INVALID_CATEGORY_ROUTE_CATEGORIES', errors);
-  }
+function validateArchiveRoute(route, path, errors) {
+  validatePaginatedRoute(route, path, errors, {
+    allowedKeys: ['path', 'page', 'totalPages', 'posts', 'pagination'],
+    requiredKeys: ['path', 'page', 'totalPages', 'posts', 'pagination'],
+    routeCodePrefix: 'ARCHIVE_ROUTE',
+  });
+}
+
+function validateCategoryRoute(route, path, errors) {
+  validatePaginatedRoute(route, path, errors, {
+    allowedKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination', 'categories'],
+    requiredKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination'],
+    routeCodePrefix: 'CATEGORY_ROUTE',
+  });
 }
 
 function validateTagRoute(route, path, errors) {
-  validateClosedObject(route, path, errors, ['slug', 'posts', 'pagination', 'tags']);
+  validatePaginatedRoute(route, path, errors, {
+    allowedKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination', 'tags'],
+    requiredKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination'],
+    routeCodePrefix: 'TAG_ROUTE',
+  });
+}
+
+function validatePaginatedRoute(route, path, errors, options) {
+  validateClosedObject(route, path, errors, options.allowedKeys);
   if (!isObject(route)) {
     return;
   }
 
-  validateNonEmptyString(route.slug, `${path}.slug`, 'INVALID_TAG_ROUTE_SLUG', errors);
-  validateString(route.posts, `${path}.posts`, 'INVALID_TAG_ROUTE_POSTS', errors);
-  validateString(route.pagination, `${path}.pagination`, 'INVALID_TAG_ROUTE_PAGINATION', errors);
+  validateNonEmptyString(route.path, `${path}.path`, `INVALID_${options.routeCodePrefix}_PATH`, errors);
+  validateInteger(route.page, `${path}.page`, `INVALID_${options.routeCodePrefix}_PAGE`, errors, { minimum: 1 });
+  validateInteger(route.totalPages, `${path}.totalPages`, `INVALID_${options.routeCodePrefix}_TOTAL_PAGES`, errors, { minimum: 1 });
+  validateString(route.posts, `${path}.posts`, `INVALID_${options.routeCodePrefix}_POSTS`, errors);
+  validateString(route.pagination, `${path}.pagination`, `INVALID_${options.routeCodePrefix}_PAGINATION`, errors);
+
+  if ('slug' in route) {
+    validateNonEmptyString(route.slug, `${path}.slug`, `INVALID_${options.routeCodePrefix}_SLUG`, errors);
+  }
+  if (route.categories !== undefined) {
+    validateString(route.categories, `${path}.categories`, `INVALID_${options.routeCodePrefix}_CATEGORIES`, errors);
+  }
   if (route.tags !== undefined) {
-    validateString(route.tags, `${path}.tags`, 'INVALID_TAG_ROUTE_TAGS', errors);
+    validateString(route.tags, `${path}.tags`, `INVALID_${options.routeCodePrefix}_TAGS`, errors);
   }
-}
-
-function validateRouteBlocks(blocks, path, errors, options) {
-  validateClosedObject(blocks, path, errors, options.allowKeys);
-  if (!isObject(blocks)) {
-    return;
-  }
-
-  for (const key of options.requiredKeys) {
-    validateString(blocks[key], `${path}.${key}`, `INVALID_ROUTE_${key.toUpperCase()}`, errors);
-  }
-
-  for (const key of options.allowKeys) {
-    if (blocks[key] !== undefined) {
-      validateString(blocks[key], `${path}.${key}`, `INVALID_ROUTE_${key.toUpperCase()}`, errors);
-    }
+  if (Number.isInteger(route.page) && Number.isInteger(route.totalPages) && route.page > route.totalPages) {
+    errors.push(issue(`INVALID_${options.routeCodePrefix}_PAGE`, `${path}.page`, 'Page cannot exceed totalPages'));
   }
 }
 
@@ -267,12 +278,10 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 
 function isOptionalKey(path, key) {
   if (path === 'site') return key === 'logo' || key === 'social';
-  if (path.endsWith('.index')) return false;
-  if (path.endsWith('.archive')) return key === 'categories' || key === 'tags';
-  if (path.startsWith('routes.categories[')) return key === 'categories';
-  if (path.startsWith('routes.tags[')) return key === 'tags';
   if (path.startsWith('content.posts[')) return key === 'author_avatar' || key === 'featured_image';
   if (path.startsWith('content.categories[')) return key === 'description';
+  if (path.startsWith('routes.categories[')) return key === 'categories';
+  if (path.startsWith('routes.tags[')) return key === 'tags';
   return false;
 }
 
@@ -282,9 +291,9 @@ function validateObject(value, path, code, errors) {
   }
 }
 
-function validateLiteral(value, expected, path, code, errors) {
-  if (value !== expected) {
-    errors.push(issue(code, path, `Expected '${expected}'`));
+function validateLiteral(value, literal, path, code, errors) {
+  if (value !== literal) {
+    errors.push(issue(code, path, `Expected literal value "${literal}"`));
   }
 }
 
@@ -305,14 +314,27 @@ function validateInteger(value, path, code, errors, options = {}) {
     errors.push(issue(code, path, 'Expected an integer'));
     return;
   }
+
   if (options.minimum !== undefined && value < options.minimum) {
-    errors.push(issue(code, path, `Expected an integer >= ${options.minimum}`));
+    errors.push(issue(code, path, `Expected integer >= ${options.minimum}`));
   }
 }
 
 function validateEnum(value, path, code, errors, allowedValues) {
   if (!allowedValues.includes(value)) {
     errors.push(issue(code, path, `Expected one of: ${allowedValues.join(', ')}`));
+  }
+}
+
+function validateDateTimeString(value, path, code, errors) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    errors.push(issue(code, path, 'Expected a date-time string'));
+    return;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    errors.push(issue(code, path, 'Expected a valid date-time string'));
   }
 }
 
@@ -329,22 +351,6 @@ function validateUri(value, path, code, errors) {
   }
 }
 
-function validateDateTimeString(value, path, code, errors) {
-  if (typeof value !== 'string' || value.trim() === '') {
-    errors.push(issue(code, path, 'Expected an ISO date-time string'));
-    return;
-  }
-
-  const parsed = Date.parse(value);
-  if (Number.isNaN(parsed)) {
-    errors.push(issue(code, path, 'Expected a valid ISO date-time string'));
-  }
-}
-
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
 function issue(code, path, message) {
   return {
     code,
@@ -352,4 +358,8 @@ function issue(code, path, message) {
     message,
     severity: 'error',
   };
+}
+
+function isObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

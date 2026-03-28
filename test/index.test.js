@@ -68,19 +68,41 @@ function createValidPreviewData() {
       ],
     },
     routes: {
-      index: {
-        posts: '<article>Index</article>',
-        categories: '<a>General</a>',
-        tags: '<a>Intro</a>',
-        pagination: '',
-      },
-      archive: {
-        posts: '<article>Archive</article>',
-        pagination: '',
-      },
+      index: [
+        {
+          path: '/',
+          page: 1,
+          totalPages: 2,
+          posts: '<article>Index page 1</article>',
+          categories: '<a>General</a>',
+          tags: '<a>Intro</a>',
+          pagination: '<nav><a href="/page/2/">Next</a></nav>',
+        },
+        {
+          path: '/page/2/',
+          page: 2,
+          totalPages: 2,
+          posts: '<article>Index page 2</article>',
+          categories: '<a>General</a>',
+          tags: '<a>Intro</a>',
+          pagination: '<nav><a href="/">Previous</a></nav>',
+        },
+      ],
+      archive: [
+        {
+          path: '/archive/',
+          page: 1,
+          totalPages: 1,
+          posts: '<article>Archive</article>',
+          pagination: '',
+        },
+      ],
       categories: [
         {
+          path: '/categories/general/',
           slug: 'general',
+          page: 1,
+          totalPages: 1,
           posts: '<article>Category</article>',
           pagination: '',
           categories: '<a>General</a>',
@@ -88,7 +110,10 @@ function createValidPreviewData() {
       ],
       tags: [
         {
+          path: '/tags/intro/',
           slug: 'intro',
+          page: 1,
+          totalPages: 1,
           posts: '<article>Tag</article>',
           pagination: '',
           tags: '<a>Intro</a>',
@@ -98,7 +123,7 @@ function createValidPreviewData() {
   };
 }
 
-test('validatePreviewData accepts a valid v0.2 payload', () => {
+test('validatePreviewData accepts a valid v0.3 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
@@ -124,13 +149,23 @@ test('validatePreviewData rejects missing status on post or page', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].status'), true);
 });
 
-test('validatePreviewData rejects invalid route block shapes', () => {
+test('validatePreviewData rejects invalid paginated route block shapes', () => {
   const data = createValidPreviewData();
-  delete data.routes.index.categories;
+  delete data.routes.index[0].path;
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'routes.index.categories'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'routes.index[0].path'), true);
+});
+
+test('validatePreviewData rejects page numbers beyond totalPages', () => {
+  const data = createValidPreviewData();
+  data.routes.categories[0].page = 2;
+  data.routes.categories[0].totalPages = 1;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'routes.categories[0].page'), true);
 });
 
 test('validatePreviewData rejects extra root keys but allows extra site keys', () => {
@@ -153,7 +188,7 @@ test('validatePreviewData allows content category description to be omitted', ()
 
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
-  data.version = '0.1';
+  data.version = '0.2';
 
   assert.throws(() => assertPreviewData(data), /INVALID_VERSION/);
 });

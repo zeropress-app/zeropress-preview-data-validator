@@ -4,7 +4,7 @@
 ![license](https://img.shields.io/npm/l/%40zeropress%2Fpreview-data-validator)
 ![node](https://img.shields.io/node/v/%40zeropress%2Fpreview-data-validator)
 
-Shared validation core for ZeroPress preview data v0.2.
+Shared validation core for ZeroPress preview data v0.3.
 
 This package is the canonical runtime contract for preview payloads consumed by:
 
@@ -31,7 +31,7 @@ import {
 Schema export:
 
 ```js
-import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.2.schema.json';
+import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.3.schema.json';
 ```
 
 ## API

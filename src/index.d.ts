@@ -61,24 +61,28 @@ export interface PreviewTagData {
   postCount: number;
 }
 
-export interface PreviewRouteBlocks {
+export interface PreviewPaginatedRouteData {
+  path: string;
+  page: number;
+  totalPages: number;
   posts: string;
   pagination: string;
-  categories?: string;
-  tags?: string;
 }
 
-export interface PreviewCategoryRouteData {
+export interface PreviewIndexRouteData extends PreviewPaginatedRouteData {
+  categories: string;
+  tags: string;
+}
+
+export interface PreviewArchiveRouteData extends PreviewPaginatedRouteData {}
+
+export interface PreviewCategoryRouteData extends PreviewPaginatedRouteData {
   slug: string;
-  posts: string;
-  pagination: string;
   categories?: string;
 }
 
-export interface PreviewTagRouteData {
+export interface PreviewTagRouteData extends PreviewPaginatedRouteData {
   slug: string;
-  posts: string;
-  pagination: string;
   tags?: string;
 }
 
@@ -90,17 +94,14 @@ export interface PreviewContentData {
 }
 
 export interface PreviewRoutesData {
-  index: PreviewRouteBlocks & {
-    categories: string;
-    tags: string;
-  };
-  archive: PreviewRouteBlocks;
+  index: PreviewIndexRouteData[];
+  archive: PreviewArchiveRouteData[];
   categories: PreviewCategoryRouteData[];
   tags: PreviewTagRouteData[];
 }
 
-export interface PreviewDataV02 {
-  version: '0.2';
+export interface PreviewDataV03 {
+  version: '0.3';
   generator: string;
   generated_at: string;
   site: PreviewSiteData;
@@ -114,8 +115,8 @@ export interface PreviewDataValidationResult {
   warnings: ValidationIssue[];
 }
 
-export const PREVIEW_DATA_VERSION: '0.2';
+export const PREVIEW_DATA_VERSION: '0.3';
 
 export function validatePreviewData(data: unknown): PreviewDataValidationResult;
 export function assertPreviewData<T>(data: T): T;
-export function isPreviewData(data: unknown): data is PreviewDataV02;
+export function isPreviewData(data: unknown): data is PreviewDataV03;

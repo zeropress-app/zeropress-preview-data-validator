@@ -1,12 +1,13 @@
 {
   "name": "@zeropress/preview-data-validator",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Shared ZeroPress preview data validation core",
   "type": "module",
   "license": "MIT",
   "exports": {
     ".": "./src/index.js",
-    "./preview-data.v0.2.schema.json": "./src/preview-data.v0.2.schema.json"
+    "./preview-data.v0.2.schema.json": "./src/preview-data.v0.2.schema.json",
+    "./preview-data.v0.3.schema.json": "./src/preview-data.v0.3.schema.json"
   },
   "types": "./src/index.d.ts",
   "files": [
