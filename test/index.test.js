@@ -186,6 +186,23 @@ test('validatePreviewData allows content category description to be omitted', ()
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData allows an empty string for site.url', () => {
+  const data = createValidPreviewData();
+  data.site.url = '';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData still rejects whitespace-only site.url', () => {
+  const data = createValidPreviewData();
+  data.site.url = '   ';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.url'), true);
+});
+
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
   data.version = '0.2';

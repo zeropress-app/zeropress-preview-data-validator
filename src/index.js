@@ -43,7 +43,7 @@ function validateSite(site, path, errors) {
 
   validateNonEmptyString(site.title, `${path}.title`, 'INVALID_SITE_TITLE', errors);
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
-  validateUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
+  validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
   validateNonEmptyString(site.language, `${path}.language`, 'INVALID_SITE_LANGUAGE', errors);
 
   if (site.logo !== undefined) {
@@ -349,6 +349,14 @@ function validateUri(value, path, code, errors) {
   } catch {
     errors.push(issue(code, path, 'Expected a valid URI'));
   }
+}
+
+function validateSiteUri(value, path, code, errors) {
+  if (value === '') {
+    return;
+  }
+
+  validateUri(value, path, code, errors);
 }
 
 function issue(code, path, message) {
