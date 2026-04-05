@@ -1,18 +1,17 @@
-export const PREVIEW_DATA_VERSION = '0.3';
+export const PREVIEW_DATA_VERSION = '0.4';
 
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'routes']);
+  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content']);
 
-  if (!errors.length) {
+  if (isObject(data)) {
     validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
     validateNonEmptyString(data.generator, 'generator', 'INVALID_GENERATOR', errors);
     validateDateTimeString(data.generated_at, 'generated_at', 'INVALID_GENERATED_AT', errors);
 
     validateSite(data.site, 'site', errors);
     validateContent(data.content, 'content', errors);
-    validateRoutes(data.routes, 'routes', errors);
   }
 
   return {
@@ -45,6 +44,11 @@ function validateSite(site, path, errors) {
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
   validateNonEmptyString(site.language, `${path}.language`, 'INVALID_SITE_LANGUAGE', errors);
+  validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
+  validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
+  validateString(site.timeFormat, `${path}.timeFormat`, 'INVALID_SITE_TIME_FORMAT', errors);
+  validateNonEmptyString(site.siteTimezone, `${path}.siteTimezone`, 'INVALID_SITE_TIMEZONE', errors);
+  validateNonEmptyString(site.siteLocale, `${path}.siteLocale`, 'INVALID_SITE_LOCALE', errors);
 
   if (site.logo !== undefined) {
     validateUri(site.logo, `${path}.logo`, 'INVALID_SITE_LOGO', errors);
@@ -58,6 +62,17 @@ function validateSite(site, path, errors) {
       }
     }
   }
+
+  rejectLegacyKeys(site, path, errors, [
+    'site_name',
+    'site_description',
+    'site_url',
+    'metadata',
+    'media_delivery_mode',
+    'media_delivery_base_url',
+    'site_timezone',
+    'site_locale',
+  ], 'INVALID_LEGACY_SITE_FIELD');
 }
 
 function validateContent(content, path, errors) {
@@ -80,26 +95,6 @@ function validateContent(content, path, errors) {
   });
 }
 
-function validateRoutes(routes, path, errors) {
-  validateClosedObject(routes, path, errors, ['index', 'archive', 'categories', 'tags']);
-  if (!isObject(routes)) {
-    return;
-  }
-
-  validateArray(routes.index, `${path}.index`, 'INVALID_INDEX_ROUTES', errors, (entry, index) => {
-    validateIndexRoute(entry, `${path}.index[${index}]`, errors);
-  });
-  validateArray(routes.archive, `${path}.archive`, 'INVALID_ARCHIVE_ROUTES', errors, (entry, index) => {
-    validateArchiveRoute(entry, `${path}.archive[${index}]`, errors);
-  });
-  validateArray(routes.categories, `${path}.categories`, 'INVALID_CATEGORY_ROUTES', errors, (entry, index) => {
-    validateCategoryRoute(entry, `${path}.categories[${index}]`, errors);
-  });
-  validateArray(routes.tags, `${path}.tags`, 'INVALID_TAG_ROUTES', errors, (entry, index) => {
-    validateTagRoute(entry, `${path}.tags[${index}]`, errors);
-  });
-}
-
 function validatePreviewPost(post, path, errors) {
   validateClosedObject(post, path, errors, [
     'id',
@@ -108,18 +103,14 @@ function validatePreviewPost(post, path, errors) {
     'slug',
     'html',
     'excerpt',
-    'published_at',
-    'updated_at',
     'published_at_iso',
     'updated_at_iso',
-    'reading_time',
     'author_name',
     'author_avatar',
     'featured_image',
-    'categories_html',
-    'tags_html',
-    'comments_html',
     'status',
+    'category_slugs',
+    'tag_slugs',
   ]);
   if (!isObject(post)) {
     return;
@@ -131,16 +122,12 @@ function validatePreviewPost(post, path, errors) {
   validateNonEmptyString(post.slug, `${path}.slug`, 'INVALID_POST_SLUG', errors);
   validateString(post.html, `${path}.html`, 'INVALID_POST_HTML', errors);
   validateString(post.excerpt, `${path}.excerpt`, 'INVALID_POST_EXCERPT', errors);
-  validateNonEmptyString(post.published_at, `${path}.published_at`, 'INVALID_POST_PUBLISHED_AT', errors);
-  validateNonEmptyString(post.updated_at, `${path}.updated_at`, 'INVALID_POST_UPDATED_AT', errors);
   validateDateTimeString(post.published_at_iso, `${path}.published_at_iso`, 'INVALID_POST_PUBLISHED_AT_ISO', errors);
   validateDateTimeString(post.updated_at_iso, `${path}.updated_at_iso`, 'INVALID_POST_UPDATED_AT_ISO', errors);
-  validateNonEmptyString(post.reading_time, `${path}.reading_time`, 'INVALID_POST_READING_TIME', errors);
   validateNonEmptyString(post.author_name, `${path}.author_name`, 'INVALID_POST_AUTHOR_NAME', errors);
-  validateString(post.categories_html, `${path}.categories_html`, 'INVALID_POST_CATEGORIES_HTML', errors);
-  validateString(post.tags_html, `${path}.tags_html`, 'INVALID_POST_TAGS_HTML', errors);
-  validateString(post.comments_html, `${path}.comments_html`, 'INVALID_POST_COMMENTS_HTML', errors);
   validateEnum(post.status, `${path}.status`, 'INVALID_POST_STATUS', errors, ['published', 'draft']);
+  validateSlugArray(post.category_slugs, `${path}.category_slugs`, 'INVALID_POST_CATEGORY_SLUGS', errors);
+  validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors);
 
   if (post.author_avatar !== undefined) {
     validateUri(post.author_avatar, `${path}.author_avatar`, 'INVALID_POST_AUTHOR_AVATAR', errors);
@@ -164,7 +151,7 @@ function validatePreviewPage(page, path, errors) {
 }
 
 function validatePreviewCategory(category, path, errors) {
-  validateClosedObject(category, path, errors, ['id', 'name', 'slug', 'description', 'postCount']);
+  validateClosedObject(category, path, errors, ['id', 'name', 'slug', 'description']);
   if (!isObject(category)) {
     return;
   }
@@ -172,14 +159,13 @@ function validatePreviewCategory(category, path, errors) {
   validateNonEmptyString(category.id, `${path}.id`, 'INVALID_CATEGORY_ID', errors);
   validateNonEmptyString(category.name, `${path}.name`, 'INVALID_CATEGORY_NAME', errors);
   validateNonEmptyString(category.slug, `${path}.slug`, 'INVALID_CATEGORY_SLUG', errors);
-  validateInteger(category.postCount, `${path}.postCount`, 'INVALID_CATEGORY_POST_COUNT', errors, { minimum: 0 });
   if (category.description !== undefined) {
     validateString(category.description, `${path}.description`, 'INVALID_CATEGORY_DESCRIPTION', errors);
   }
 }
 
 function validatePreviewTag(tag, path, errors) {
-  validateClosedObject(tag, path, errors, ['id', 'name', 'slug', 'postCount']);
+  validateClosedObject(tag, path, errors, ['id', 'name', 'slug', 'description']);
   if (!isObject(tag)) {
     return;
   }
@@ -187,64 +173,8 @@ function validatePreviewTag(tag, path, errors) {
   validateNonEmptyString(tag.id, `${path}.id`, 'INVALID_TAG_ID', errors);
   validateNonEmptyString(tag.name, `${path}.name`, 'INVALID_TAG_NAME', errors);
   validateNonEmptyString(tag.slug, `${path}.slug`, 'INVALID_TAG_SLUG', errors);
-  validateInteger(tag.postCount, `${path}.postCount`, 'INVALID_TAG_POST_COUNT', errors, { minimum: 0 });
-}
-
-function validateIndexRoute(route, path, errors) {
-  validatePaginatedRoute(route, path, errors, {
-    allowedKeys: ['path', 'page', 'totalPages', 'posts', 'pagination', 'categories', 'tags'],
-    requiredKeys: ['path', 'page', 'totalPages', 'posts', 'pagination', 'categories', 'tags'],
-    routeCodePrefix: 'INDEX_ROUTE',
-  });
-}
-
-function validateArchiveRoute(route, path, errors) {
-  validatePaginatedRoute(route, path, errors, {
-    allowedKeys: ['path', 'page', 'totalPages', 'posts', 'pagination'],
-    requiredKeys: ['path', 'page', 'totalPages', 'posts', 'pagination'],
-    routeCodePrefix: 'ARCHIVE_ROUTE',
-  });
-}
-
-function validateCategoryRoute(route, path, errors) {
-  validatePaginatedRoute(route, path, errors, {
-    allowedKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination', 'categories'],
-    requiredKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination'],
-    routeCodePrefix: 'CATEGORY_ROUTE',
-  });
-}
-
-function validateTagRoute(route, path, errors) {
-  validatePaginatedRoute(route, path, errors, {
-    allowedKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination', 'tags'],
-    requiredKeys: ['path', 'page', 'totalPages', 'slug', 'posts', 'pagination'],
-    routeCodePrefix: 'TAG_ROUTE',
-  });
-}
-
-function validatePaginatedRoute(route, path, errors, options) {
-  validateClosedObject(route, path, errors, options.allowedKeys);
-  if (!isObject(route)) {
-    return;
-  }
-
-  validateNonEmptyString(route.path, `${path}.path`, `INVALID_${options.routeCodePrefix}_PATH`, errors);
-  validateInteger(route.page, `${path}.page`, `INVALID_${options.routeCodePrefix}_PAGE`, errors, { minimum: 1 });
-  validateInteger(route.totalPages, `${path}.totalPages`, `INVALID_${options.routeCodePrefix}_TOTAL_PAGES`, errors, { minimum: 1 });
-  validateString(route.posts, `${path}.posts`, `INVALID_${options.routeCodePrefix}_POSTS`, errors);
-  validateString(route.pagination, `${path}.pagination`, `INVALID_${options.routeCodePrefix}_PAGINATION`, errors);
-
-  if ('slug' in route) {
-    validateNonEmptyString(route.slug, `${path}.slug`, `INVALID_${options.routeCodePrefix}_SLUG`, errors);
-  }
-  if (route.categories !== undefined) {
-    validateString(route.categories, `${path}.categories`, `INVALID_${options.routeCodePrefix}_CATEGORIES`, errors);
-  }
-  if (route.tags !== undefined) {
-    validateString(route.tags, `${path}.tags`, `INVALID_${options.routeCodePrefix}_TAGS`, errors);
-  }
-  if (Number.isInteger(route.page) && Number.isInteger(route.totalPages) && route.page > route.totalPages) {
-    errors.push(issue(`INVALID_${options.routeCodePrefix}_PAGE`, `${path}.page`, 'Page cannot exceed totalPages'));
+  if (tag.description !== undefined) {
+    validateString(tag.description, `${path}.description`, 'INVALID_TAG_DESCRIPTION', errors);
   }
 }
 
@@ -264,7 +194,7 @@ function validateClosedObject(value, path, errors, allowedKeys) {
   }
 
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.includes(key)) {
+    if (!allowedKeys.includes(key) && !isSiteExtensionKey(path, key)) {
       errors.push(issue('UNKNOWN_PROPERTY', path ? `${path}.${key}` : key, 'Unexpected property'));
     }
   }
@@ -277,12 +207,52 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 }
 
 function isOptionalKey(path, key) {
-  if (path === 'site') return key === 'logo' || key === 'social';
-  if (path.startsWith('content.posts[')) return key === 'author_avatar' || key === 'featured_image';
-  if (path.startsWith('content.categories[')) return key === 'description';
-  if (path.startsWith('routes.categories[')) return key === 'categories';
-  if (path.startsWith('routes.tags[')) return key === 'tags';
+  if (path === 'site') {
+    return key === 'logo' || key === 'social';
+  }
+  if (path.startsWith('content.posts[')) {
+    return key === 'author_avatar' || key === 'featured_image';
+  }
+  if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
+    return key === 'description';
+  }
   return false;
+}
+
+function isSiteExtensionKey(path, key) {
+  if (path !== 'site') {
+    return false;
+  }
+
+  return ![
+    'site_name',
+    'site_description',
+    'site_url',
+    'metadata',
+    'media_delivery_mode',
+    'media_delivery_base_url',
+    'site_timezone',
+    'site_locale',
+  ].includes(key);
+}
+
+function validateSlugArray(value, path, code, errors) {
+  if (!Array.isArray(value)) {
+    errors.push(issue(code, path, 'Expected an array'));
+    return;
+  }
+
+  for (const [index, entry] of value.entries()) {
+    validateNonEmptyString(entry, `${path}[${index}]`, code, errors);
+  }
+}
+
+function rejectLegacyKeys(value, path, errors, keys, code) {
+  for (const key of keys) {
+    if (key in value) {
+      errors.push(issue(code, `${path}.${key}`, 'Legacy field is not allowed in preview-data v0.4'));
+    }
+  }
 }
 
 function validateObject(value, path, code, errors) {

@@ -12,6 +12,11 @@ export interface PreviewSiteData {
   description: string;
   url: string;
   language: string;
+  postsPerPage: number;
+  dateFormat: string;
+  timeFormat: string;
+  siteTimezone: string;
+  siteLocale: string;
   logo?: string;
   social?: Record<string, string>;
   [key: string]: unknown;
@@ -24,18 +29,14 @@ export interface PreviewPostData {
   slug: string;
   html: string;
   excerpt: string;
-  published_at: string;
-  updated_at: string;
   published_at_iso: string;
   updated_at_iso: string;
-  reading_time: string;
   author_name: string;
   author_avatar?: string;
   featured_image?: string;
-  categories_html: string;
-  tags_html: string;
-  comments_html: string;
   status: PreviewStatus;
+  category_slugs: string[];
+  tag_slugs: string[];
 }
 
 export interface PreviewPageData {
@@ -51,39 +52,13 @@ export interface PreviewCategoryData {
   name: string;
   slug: string;
   description?: string;
-  postCount: number;
 }
 
 export interface PreviewTagData {
   id: string;
   name: string;
   slug: string;
-  postCount: number;
-}
-
-export interface PreviewPaginatedRouteData {
-  path: string;
-  page: number;
-  totalPages: number;
-  posts: string;
-  pagination: string;
-}
-
-export interface PreviewIndexRouteData extends PreviewPaginatedRouteData {
-  categories: string;
-  tags: string;
-}
-
-export interface PreviewArchiveRouteData extends PreviewPaginatedRouteData {}
-
-export interface PreviewCategoryRouteData extends PreviewPaginatedRouteData {
-  slug: string;
-  categories?: string;
-}
-
-export interface PreviewTagRouteData extends PreviewPaginatedRouteData {
-  slug: string;
-  tags?: string;
+  description?: string;
 }
 
 export interface PreviewContentData {
@@ -93,20 +68,12 @@ export interface PreviewContentData {
   tags: PreviewTagData[];
 }
 
-export interface PreviewRoutesData {
-  index: PreviewIndexRouteData[];
-  archive: PreviewArchiveRouteData[];
-  categories: PreviewCategoryRouteData[];
-  tags: PreviewTagRouteData[];
-}
-
-export interface PreviewDataV03 {
-  version: '0.3';
+export interface PreviewDataV04 {
+  version: '0.4';
   generator: string;
   generated_at: string;
   site: PreviewSiteData;
   content: PreviewContentData;
-  routes: PreviewRoutesData;
 }
 
 export interface PreviewDataValidationResult {
@@ -115,8 +82,8 @@ export interface PreviewDataValidationResult {
   warnings: ValidationIssue[];
 }
 
-export const PREVIEW_DATA_VERSION: '0.3';
+export const PREVIEW_DATA_VERSION: '0.4';
 
 export function validatePreviewData(data: unknown): PreviewDataValidationResult;
 export function assertPreviewData<T>(data: T): T;
-export function isPreviewData(data: unknown): data is PreviewDataV03;
+export function isPreviewData(data: unknown): data is PreviewDataV04;

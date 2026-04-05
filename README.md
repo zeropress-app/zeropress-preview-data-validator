@@ -4,7 +4,7 @@
 ![license](https://img.shields.io/npm/l/%40zeropress%2Fpreview-data-validator)
 ![node](https://img.shields.io/node/v/%40zeropress%2Fpreview-data-validator)
 
-Shared validation core for ZeroPress preview data v0.3.
+Shared validation core for ZeroPress preview data v0.4.
 
 This package is the canonical runtime contract for preview payloads consumed by:
 
@@ -31,8 +31,17 @@ import {
 Schema export:
 
 ```js
-import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.3.schema.json';
+import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.4.schema.json';
 ```
+
+`preview-data v0.4` is data-only:
+
+- no `routes` block
+- no raw `*_html` fragments on posts
+- no preformatted `published_at` / `updated_at`
+- taxonomy membership is expressed as `category_slugs` and `tag_slugs`
+
+Build tooling is responsible for deriving render-ready route data from this compact artifact.
 
 ## API
 

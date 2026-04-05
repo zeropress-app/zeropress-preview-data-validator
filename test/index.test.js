@@ -17,6 +17,11 @@ function createValidPreviewData() {
       description: 'Preview contract fixture',
       url: 'https://example.com',
       language: 'en',
+      postsPerPage: 10,
+      dateFormat: 'YYYY-MM-DD',
+      timeFormat: 'HH:mm',
+      siteTimezone: 'UTC',
+      siteLocale: 'en-US',
       custom_setting: 'value',
     },
     content: {
@@ -28,16 +33,12 @@ function createValidPreviewData() {
           slug: 'hello-zeropress',
           html: '<p>Preview post content</p>',
           excerpt: 'Preview excerpt',
-          published_at: '2026-03-25 09:00',
-          updated_at: '2026-03-25 09:00',
           published_at_iso: '2026-03-25T09:00:00.000Z',
           updated_at_iso: '2026-03-25T09:00:00.000Z',
-          reading_time: '1 min read',
           author_name: 'Admin',
-          categories_html: '<a href="/categories/general/">General (1)</a>',
-          tags_html: '<a href="/tags/intro/">Intro (1)</a>',
-          comments_html: '<div id="comments"></div>',
           status: 'published',
+          category_slugs: ['general'],
+          tag_slugs: ['intro'],
         },
       ],
       pages: [
@@ -55,7 +56,6 @@ function createValidPreviewData() {
           name: 'General',
           slug: 'general',
           description: 'General posts',
-          postCount: 1,
         },
       ],
       tags: [
@@ -63,67 +63,14 @@ function createValidPreviewData() {
           id: 'tag-1',
           name: 'Intro',
           slug: 'intro',
-          postCount: 1,
-        },
-      ],
-    },
-    routes: {
-      index: [
-        {
-          path: '/',
-          page: 1,
-          totalPages: 2,
-          posts: '<article>Index page 1</article>',
-          categories: '<a>General</a>',
-          tags: '<a>Intro</a>',
-          pagination: '<nav><a href="/page/2/">Next</a></nav>',
-        },
-        {
-          path: '/page/2/',
-          page: 2,
-          totalPages: 2,
-          posts: '<article>Index page 2</article>',
-          categories: '<a>General</a>',
-          tags: '<a>Intro</a>',
-          pagination: '<nav><a href="/">Previous</a></nav>',
-        },
-      ],
-      archive: [
-        {
-          path: '/archive/',
-          page: 1,
-          totalPages: 1,
-          posts: '<article>Archive</article>',
-          pagination: '',
-        },
-      ],
-      categories: [
-        {
-          path: '/categories/general/',
-          slug: 'general',
-          page: 1,
-          totalPages: 1,
-          posts: '<article>Category</article>',
-          pagination: '',
-          categories: '<a>General</a>',
-        },
-      ],
-      tags: [
-        {
-          path: '/tags/intro/',
-          slug: 'intro',
-          page: 1,
-          totalPages: 1,
-          posts: '<article>Tag</article>',
-          pagination: '',
-          tags: '<a>Intro</a>',
+          description: 'Intro tag',
         },
       ],
     },
   };
 }
 
-test('validatePreviewData accepts a valid v0.3 payload', () => {
+test('validatePreviewData accepts a valid v0.4 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
@@ -149,38 +96,46 @@ test('validatePreviewData rejects missing status on post or page', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].status'), true);
 });
 
-test('validatePreviewData rejects invalid paginated route block shapes', () => {
+test('validatePreviewData rejects legacy render-ready fields', () => {
   const data = createValidPreviewData();
-  delete data.routes.index[0].path;
+  data.site.site_name = 'Legacy name';
+  data.content.posts[0].published_at = '2026-03-25 09:00';
+  data.content.posts[0].categories_html = '<a href="/categories/general/">General</a>';
+  data.content.categories[0].postCount = 1;
+  data.routes = { index: [] };
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'routes.index[0].path'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.site_name'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].published_at'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].categories_html'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.categories[0].postCount'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'routes'), true);
 });
 
-test('validatePreviewData rejects page numbers beyond totalPages', () => {
+test('validatePreviewData rejects snake_case locale and timezone site keys', () => {
   const data = createValidPreviewData();
-  data.routes.categories[0].page = 2;
-  data.routes.categories[0].totalPages = 1;
+  data.site.site_timezone = 'UTC';
+  data.site.site_locale = 'en_US';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'routes.categories[0].page'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.site_timezone'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.site_locale'), true);
 });
 
-test('validatePreviewData rejects extra root keys but allows extra site keys', () => {
+test('validatePreviewData allows extra site keys for future theme-facing settings', () => {
   const data = createValidPreviewData();
-  data.unexpected = true;
+  data.site.heroTitle = 'Hello';
 
   const result = validatePreviewData(data);
-  assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'unexpected'), true);
-  assert.equal(data.site.custom_setting, 'value');
+  assert.equal(result.ok, true);
 });
 
-test('validatePreviewData allows content category description to be omitted', () => {
+test('validatePreviewData allows content category and tag descriptions to be omitted', () => {
   const data = createValidPreviewData();
   delete data.content.categories[0].description;
+  delete data.content.tags[0].description;
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
@@ -205,7 +160,7 @@ test('validatePreviewData still rejects whitespace-only site.url', () => {
 
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
-  data.version = '0.2';
+  data.version = '0.3';
 
   assert.throws(() => assertPreviewData(data), /INVALID_VERSION/);
 });
