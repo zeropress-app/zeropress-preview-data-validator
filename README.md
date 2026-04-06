@@ -40,6 +40,10 @@ import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.4.schem
 - no raw `*_html` fragments on posts
 - no preformatted `published_at` / `updated_at`
 - taxonomy membership is expressed as `category_slugs` and `tag_slugs`
+- per-post comment policy is expressed as `allow_comments`
+- site locale is carried as `site.locale`
+- site timezone is carried as `site.timezone`
+- comment rendering policy is carried as `site.disallowComments`
 
 Build tooling is responsible for deriving render-ready route data from this compact artifact.
 

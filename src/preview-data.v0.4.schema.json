@@ -31,12 +31,12 @@
         "title",
         "description",
         "url",
-        "language",
+        "locale",
         "postsPerPage",
         "dateFormat",
         "timeFormat",
-        "siteTimezone",
-        "siteLocale"
+        "timezone",
+        "disallowComments"
       ],
       "properties": {
         "title": { "type": "string", "minLength": 1 },
@@ -48,12 +48,12 @@
             { "format": "uri" }
           ]
         },
-        "language": { "type": "string", "minLength": 2 },
+        "locale": { "type": "string", "minLength": 2 },
         "postsPerPage": { "type": "integer", "minimum": 1 },
         "dateFormat": { "type": "string", "minLength": 1 },
         "timeFormat": { "type": "string" },
-        "siteTimezone": { "type": "string", "minLength": 1 },
-        "siteLocale": { "type": "string", "minLength": 1 },
+        "timezone": { "type": "string", "minLength": 1 },
+        "disallowComments": { "type": "boolean" },
         "logo": { "type": "string", "format": "uri" },
         "social": {
           "type": "object",
@@ -78,6 +78,7 @@
         "updated_at_iso",
         "author_name",
         "status",
+        "allow_comments",
         "category_slugs",
         "tag_slugs"
       ],
@@ -97,6 +98,7 @@
           "type": "string",
           "enum": ["published", "draft"]
         },
+        "allow_comments": { "type": "boolean" },
         "category_slugs": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }

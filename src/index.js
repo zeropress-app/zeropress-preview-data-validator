@@ -43,12 +43,12 @@ function validateSite(site, path, errors) {
   validateNonEmptyString(site.title, `${path}.title`, 'INVALID_SITE_TITLE', errors);
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
-  validateNonEmptyString(site.language, `${path}.language`, 'INVALID_SITE_LANGUAGE', errors);
+  validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
   validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
   validateString(site.timeFormat, `${path}.timeFormat`, 'INVALID_SITE_TIME_FORMAT', errors);
-  validateNonEmptyString(site.siteTimezone, `${path}.siteTimezone`, 'INVALID_SITE_TIMEZONE', errors);
-  validateNonEmptyString(site.siteLocale, `${path}.siteLocale`, 'INVALID_SITE_LOCALE', errors);
+  validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
+  validateBoolean(site.disallowComments, `${path}.disallowComments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
 
   if (site.logo !== undefined) {
     validateUri(site.logo, `${path}.logo`, 'INVALID_SITE_LOGO', errors);
@@ -70,6 +70,9 @@ function validateSite(site, path, errors) {
     'metadata',
     'media_delivery_mode',
     'media_delivery_base_url',
+    'language',
+    'siteLocale',
+    'siteTimezone',
     'site_timezone',
     'site_locale',
   ], 'INVALID_LEGACY_SITE_FIELD');
@@ -109,6 +112,7 @@ function validatePreviewPost(post, path, errors) {
     'author_avatar',
     'featured_image',
     'status',
+    'allow_comments',
     'category_slugs',
     'tag_slugs',
   ]);
@@ -126,6 +130,7 @@ function validatePreviewPost(post, path, errors) {
   validateDateTimeString(post.updated_at_iso, `${path}.updated_at_iso`, 'INVALID_POST_UPDATED_AT_ISO', errors);
   validateNonEmptyString(post.author_name, `${path}.author_name`, 'INVALID_POST_AUTHOR_NAME', errors);
   validateEnum(post.status, `${path}.status`, 'INVALID_POST_STATUS', errors, ['published', 'draft']);
+  validateBoolean(post.allow_comments, `${path}.allow_comments`, 'INVALID_POST_ALLOW_COMMENTS', errors);
   validateSlugArray(post.category_slugs, `${path}.category_slugs`, 'INVALID_POST_CATEGORY_SLUGS', errors);
   validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors);
 
@@ -287,6 +292,12 @@ function validateInteger(value, path, code, errors, options = {}) {
 
   if (options.minimum !== undefined && value < options.minimum) {
     errors.push(issue(code, path, `Expected integer >= ${options.minimum}`));
+  }
+}
+
+function validateBoolean(value, path, code, errors) {
+  if (typeof value !== 'boolean') {
+    errors.push(issue(code, path, 'Expected a boolean'));
   }
 }
 

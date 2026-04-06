@@ -11,12 +11,12 @@ export interface PreviewSiteData {
   title: string;
   description: string;
   url: string;
-  language: string;
+  locale: string;
   postsPerPage: number;
   dateFormat: string;
   timeFormat: string;
-  siteTimezone: string;
-  siteLocale: string;
+  timezone: string;
+  disallowComments: boolean;
   logo?: string;
   social?: Record<string, string>;
   [key: string]: unknown;
@@ -35,6 +35,7 @@ export interface PreviewPostData {
   author_avatar?: string;
   featured_image?: string;
   status: PreviewStatus;
+  allow_comments: boolean;
   category_slugs: string[];
   tag_slugs: string[];
 }

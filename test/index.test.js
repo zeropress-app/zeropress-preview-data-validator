@@ -16,12 +16,12 @@ function createValidPreviewData() {
       title: 'ZeroPress Preview',
       description: 'Preview contract fixture',
       url: 'https://example.com',
-      language: 'en',
+      locale: 'en-US',
       postsPerPage: 10,
       dateFormat: 'YYYY-MM-DD',
       timeFormat: 'HH:mm',
-      siteTimezone: 'UTC',
-      siteLocale: 'en-US',
+      timezone: 'UTC',
+      disallowComments: false,
       custom_setting: 'value',
     },
     content: {
@@ -37,6 +37,7 @@ function createValidPreviewData() {
           updated_at_iso: '2026-03-25T09:00:00.000Z',
           author_name: 'Admin',
           status: 'published',
+          allow_comments: true,
           category_slugs: ['general'],
           tag_slugs: ['intro'],
         },
@@ -96,6 +97,15 @@ test('validatePreviewData rejects missing status on post or page', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].status'), true);
 });
 
+test('validatePreviewData rejects missing allow_comments on post', () => {
+  const data = createValidPreviewData();
+  delete data.content.posts[0].allow_comments;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].allow_comments'), true);
+});
+
 test('validatePreviewData rejects legacy render-ready fields', () => {
   const data = createValidPreviewData();
   data.site.site_name = 'Legacy name';
@@ -122,6 +132,19 @@ test('validatePreviewData rejects snake_case locale and timezone site keys', () 
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'site.site_timezone'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'site.site_locale'), true);
+});
+
+test('validatePreviewData rejects replaced preview-data v0.4 site keys', () => {
+  const data = createValidPreviewData();
+  data.site.language = 'en-US';
+  data.site.siteLocale = 'en-US';
+  data.site.siteTimezone = 'UTC';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.language'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.siteLocale'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.siteTimezone'), true);
 });
 
 test('validatePreviewData allows extra site keys for future theme-facing settings', () => {
