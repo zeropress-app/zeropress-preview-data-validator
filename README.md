@@ -34,6 +34,8 @@ Schema export:
 import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.4.schema.json';
 ```
 
+Published schema files are shipped from the package `schemas/` directory.
+
 `preview-data v0.4` is data-only:
 
 - no `routes` block

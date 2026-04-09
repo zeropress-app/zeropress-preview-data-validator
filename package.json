@@ -6,13 +6,14 @@
   "license": "MIT",
   "exports": {
     ".": "./src/index.js",
-    "./preview-data.v0.2.schema.json": "./src/preview-data.v0.2.schema.json",
-    "./preview-data.v0.3.schema.json": "./src/preview-data.v0.3.schema.json",
-    "./preview-data.v0.4.schema.json": "./src/preview-data.v0.4.schema.json"
+    "./preview-data.v0.2.schema.json": "./schemas/preview-data.v0.2.schema.json",
+    "./preview-data.v0.3.schema.json": "./schemas/preview-data.v0.3.schema.json",
+    "./preview-data.v0.4.schema.json": "./schemas/preview-data.v0.4.schema.json"
   },
   "types": "./src/index.d.ts",
   "files": [
-    "src"
+    "src",
+    "schemas"
   ],
   "repository": {
     "type": "git",

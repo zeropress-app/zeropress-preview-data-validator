@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import {
   PREVIEW_DATA_VERSION,
   assertPreviewData,
@@ -191,4 +192,10 @@ test('assertPreviewData throws on invalid payload', () => {
 test('isPreviewData narrows valid payloads', () => {
   assert.equal(isPreviewData(createValidPreviewData()), true);
   assert.equal(isPreviewData({ version: PREVIEW_DATA_VERSION }), false);
+});
+
+test('published schema files are stored outside src', async () => {
+  await fs.access(new URL('../schemas/preview-data.v0.2.schema.json', import.meta.url));
+  await fs.access(new URL('../schemas/preview-data.v0.3.schema.json', import.meta.url));
+  await fs.access(new URL('../schemas/preview-data.v0.4.schema.json', import.meta.url));
 });
