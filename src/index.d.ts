@@ -11,6 +11,7 @@ export interface PreviewSiteData {
   title: string;
   description: string;
   url: string;
+  mediaBaseUrl?: string;
   locale: string;
   postsPerPage: number;
   dateFormat: string;
@@ -45,6 +46,8 @@ export interface PreviewPageData {
   title: string;
   slug: string;
   html: string;
+  excerpt?: string;
+  featured_image?: string;
   status: PreviewStatus;
 }
 

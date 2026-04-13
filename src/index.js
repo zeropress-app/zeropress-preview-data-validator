@@ -43,6 +43,9 @@ function validateSite(site, path, errors) {
   validateNonEmptyString(site.title, `${path}.title`, 'INVALID_SITE_TITLE', errors);
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
+  if (site.mediaBaseUrl !== undefined) {
+    validateUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
+  }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
   validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
@@ -135,15 +138,15 @@ function validatePreviewPost(post, path, errors) {
   validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors);
 
   if (post.author_avatar !== undefined) {
-    validateUri(post.author_avatar, `${path}.author_avatar`, 'INVALID_POST_AUTHOR_AVATAR', errors);
+    validateUrlLike(post.author_avatar, `${path}.author_avatar`, 'INVALID_POST_AUTHOR_AVATAR', errors);
   }
   if (post.featured_image !== undefined) {
-    validateUri(post.featured_image, `${path}.featured_image`, 'INVALID_POST_FEATURED_IMAGE', errors);
+    validateUrlLike(post.featured_image, `${path}.featured_image`, 'INVALID_POST_FEATURED_IMAGE', errors);
   }
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['id', 'title', 'slug', 'html', 'status']);
+  validateClosedObject(page, path, errors, ['id', 'title', 'slug', 'html', 'excerpt', 'featured_image', 'status']);
   if (!isObject(page)) {
     return;
   }
@@ -152,6 +155,12 @@ function validatePreviewPage(page, path, errors) {
   validateNonEmptyString(page.title, `${path}.title`, 'INVALID_PAGE_TITLE', errors);
   validateNonEmptyString(page.slug, `${path}.slug`, 'INVALID_PAGE_SLUG', errors);
   validateString(page.html, `${path}.html`, 'INVALID_PAGE_HTML', errors);
+  if (page.excerpt !== undefined) {
+    validateString(page.excerpt, `${path}.excerpt`, 'INVALID_PAGE_EXCERPT', errors);
+  }
+  if (page.featured_image !== undefined) {
+    validateUrlLike(page.featured_image, `${path}.featured_image`, 'INVALID_PAGE_FEATURED_IMAGE', errors);
+  }
   validateEnum(page.status, `${path}.status`, 'INVALID_PAGE_STATUS', errors, ['published', 'draft']);
 }
 
@@ -217,6 +226,9 @@ function isOptionalKey(path, key) {
   }
   if (path.startsWith('content.posts[')) {
     return key === 'author_avatar' || key === 'featured_image';
+  }
+  if (path.startsWith('content.pages[')) {
+    return key === 'excerpt' || key === 'featured_image';
   }
   if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
     return key === 'description';
@@ -330,6 +342,46 @@ function validateUri(value, path, code, errors) {
   } catch {
     errors.push(issue(code, path, 'Expected a valid URI'));
   }
+}
+
+function validateUrlLike(value, path, code, errors) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    errors.push(issue(code, path, 'Expected a URL-like string'));
+    return;
+  }
+
+  const trimmed = value.trim();
+
+  if (isAbsoluteUrl(trimmed)) {
+    return;
+  }
+
+  if (looksLikeRelativeUrl(trimmed)) {
+    return;
+  }
+
+  errors.push(issue(code, path, 'Expected a valid absolute URL or relative path'));
+}
+
+function isAbsoluteUrl(value) {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function looksLikeRelativeUrl(value) {
+  if (value.startsWith('//')) {
+    return false;
+  }
+
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
+    return false;
+  }
+
+  return !/[\r\n\t]/.test(value);
 }
 
 function validateSiteUri(value, path, code, errors) {

@@ -17,6 +17,7 @@ function createValidPreviewData() {
       title: 'ZeroPress Preview',
       description: 'Preview contract fixture',
       url: 'https://example.com',
+      mediaBaseUrl: 'https://media.example.com',
       locale: 'en-US',
       postsPerPage: 10,
       dateFormat: 'YYYY-MM-DD',
@@ -49,6 +50,8 @@ function createValidPreviewData() {
           title: 'About',
           slug: 'about',
           html: '<p>About page</p>',
+          excerpt: 'About excerpt',
+          featured_image: '/images/about-card.png',
           status: 'published',
         },
       ],
@@ -140,12 +143,14 @@ test('validatePreviewData rejects replaced preview-data v0.4 site keys', () => {
   data.site.language = 'en-US';
   data.site.siteLocale = 'en-US';
   data.site.siteTimezone = 'UTC';
+  data.site.media_delivery_base_url = 'https://media.example.com';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'site.language'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'site.siteLocale'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'site.siteTimezone'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.media_delivery_base_url'), true);
 });
 
 test('validatePreviewData allows extra site keys for future theme-facing settings', () => {
@@ -163,6 +168,42 @@ test('validatePreviewData allows content category and tag descriptions to be omi
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
+});
+
+test('validatePreviewData allows relative author_avatar and relative featured_image', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].author_avatar = './images/author-avatar.png';
+  data.content.posts[0].featured_image = './images/post-share.png';
+  data.content.pages[0].excerpt = 'Updated page summary';
+  data.content.pages[0].featured_image = './images/page-share.png';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData accepts site.mediaBaseUrl', () => {
+  const data = createValidPreviewData();
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects malformed page featured_image', () => {
+  const data = createValidPreviewData();
+  data.content.pages[0].featured_image = '//cdn.example.com/broken.png';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].featured_image'), true);
+});
+
+test('validatePreviewData rejects malformed relative-looking author_avatar', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].author_avatar = '//cdn.example.com/broken-avatar.png';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].author_avatar'), true);
 });
 
 test('validatePreviewData allows an empty string for site.url', () => {
