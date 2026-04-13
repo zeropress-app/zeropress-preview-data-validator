@@ -1,6 +1,6 @@
 {
   "name": "@zeropress/preview-data-validator",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Shared ZeroPress preview data validation core",
   "type": "module",
   "license": "MIT",
