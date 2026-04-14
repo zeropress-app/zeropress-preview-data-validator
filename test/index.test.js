@@ -27,17 +27,25 @@ function createValidPreviewData() {
       custom_setting: 'value',
     },
     content: {
+      authors: [
+        {
+          id: 'author-1',
+          display_name: 'Admin',
+          avatar: '/images/admin-avatar.png',
+        },
+      ],
       posts: [
         {
           id: 'post-1',
           public_id: 101,
           title: 'Hello ZeroPress',
           slug: 'hello-zeropress',
-          html: '<p>Preview post content</p>',
+          content: '# Preview post content',
+          document_type: 'markdown',
           excerpt: 'Preview excerpt',
           published_at_iso: '2026-03-25T09:00:00Z',
           updated_at_iso: '2026-03-25T09:00:00Z',
-          author_name: 'Admin',
+          author_id: 'author-1',
           status: 'published',
           allow_comments: true,
           category_slugs: ['general'],
@@ -49,7 +57,8 @@ function createValidPreviewData() {
           id: 'page-1',
           title: 'About',
           slug: 'about',
-          html: '<p>About page</p>',
+          content: '<p>About page</p>',
+          document_type: 'html',
           excerpt: 'About excerpt',
           featured_image: '/images/about-card.png',
           status: 'published',
@@ -75,7 +84,7 @@ function createValidPreviewData() {
   };
 }
 
-test('validatePreviewData accepts a valid v0.4 payload', () => {
+test('validatePreviewData accepts a valid v0.5 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
@@ -90,15 +99,15 @@ test('validatePreviewData rejects missing public_id', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].public_id'), true);
 });
 
-test('validatePreviewData rejects missing status on post or page', () => {
+test('validatePreviewData rejects missing document_type on post or page', () => {
   const data = createValidPreviewData();
-  delete data.content.posts[0].status;
-  delete data.content.pages[0].status;
+  delete data.content.posts[0].document_type;
+  delete data.content.pages[0].document_type;
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].status'), true);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].status'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].document_type'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].document_type'), true);
 });
 
 test('validatePreviewData rejects missing allow_comments on post', () => {
@@ -113,18 +122,41 @@ test('validatePreviewData rejects missing allow_comments on post', () => {
 test('validatePreviewData rejects legacy render-ready fields', () => {
   const data = createValidPreviewData();
   data.site.site_name = 'Legacy name';
-  data.content.posts[0].published_at = '2026-03-25 09:00';
-  data.content.posts[0].categories_html = '<a href="/categories/general/">General</a>';
+  data.content.posts[0].html = '<p>Legacy HTML</p>';
+  data.content.posts[0].author_name = 'Legacy Author';
+  data.content.pages[0].html = '<p>Legacy page HTML</p>';
   data.content.categories[0].postCount = 1;
   data.routes = { index: [] };
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'site.site_name'), true);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].published_at'), true);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].categories_html'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].html'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].author_name'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].html'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'content.categories[0].postCount'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'routes'), true);
+});
+
+test('validatePreviewData rejects posts that reference missing author ids', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].author_id = 'author-missing';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].author_id'), true);
+});
+
+test('validatePreviewData rejects duplicate author ids', () => {
+  const data = createValidPreviewData();
+  data.content.authors.push({
+    id: 'author-1',
+    display_name: 'Duplicate',
+  });
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.code === 'DUPLICATE_AUTHOR_ID'), true);
 });
 
 test('validatePreviewData rejects snake_case locale and timezone site keys', () => {
@@ -138,7 +170,7 @@ test('validatePreviewData rejects snake_case locale and timezone site keys', () 
   assert.equal(result.errors.some((issue) => issue.path === 'site.site_locale'), true);
 });
 
-test('validatePreviewData rejects replaced preview-data v0.4 site keys', () => {
+test('validatePreviewData rejects replaced preview-data v0.5 site keys', () => {
   const data = createValidPreviewData();
   data.site.language = 'en-US';
   data.site.siteLocale = 'en-US';
@@ -170,9 +202,9 @@ test('validatePreviewData allows content category and tag descriptions to be omi
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData allows relative author_avatar and relative featured_image', () => {
+test('validatePreviewData allows relative author avatar and relative featured_image', () => {
   const data = createValidPreviewData();
-  data.content.posts[0].author_avatar = './images/author-avatar.png';
+  data.content.authors[0].avatar = './images/author-avatar.png';
   data.content.posts[0].featured_image = './images/post-share.png';
   data.content.pages[0].excerpt = 'Updated page summary';
   data.content.pages[0].featured_image = './images/page-share.png';
@@ -188,6 +220,23 @@ test('validatePreviewData accepts site.mediaBaseUrl', () => {
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData allows an empty string for site.mediaBaseUrl', () => {
+  const data = createValidPreviewData();
+  data.site.mediaBaseUrl = '';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects missing site.mediaBaseUrl', () => {
+  const data = createValidPreviewData();
+  delete data.site.mediaBaseUrl;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.mediaBaseUrl'), true);
+});
+
 test('validatePreviewData rejects malformed page featured_image', () => {
   const data = createValidPreviewData();
   data.content.pages[0].featured_image = '//cdn.example.com/broken.png';
@@ -197,13 +246,13 @@ test('validatePreviewData rejects malformed page featured_image', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].featured_image'), true);
 });
 
-test('validatePreviewData rejects malformed relative-looking author_avatar', () => {
+test('validatePreviewData rejects malformed relative-looking author avatar', () => {
   const data = createValidPreviewData();
-  data.content.posts[0].author_avatar = '//cdn.example.com/broken-avatar.png';
+  data.content.authors[0].avatar = '//cdn.example.com/broken-avatar.png';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].author_avatar'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.authors[0].avatar'), true);
 });
 
 test('validatePreviewData allows an empty string for site.url', () => {
@@ -225,7 +274,7 @@ test('validatePreviewData still rejects whitespace-only site.url', () => {
 
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
-  data.version = '0.3';
+  data.version = '0.4';
 
   assert.throws(() => assertPreviewData(data), /INVALID_VERSION/);
 });
@@ -239,4 +288,5 @@ test('published schema files are stored outside src', async () => {
   await fs.access(new URL('../schemas/preview-data.v0.2.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.3.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.4.schema.json', import.meta.url));
+  await fs.access(new URL('../schemas/preview-data.v0.5.schema.json', import.meta.url));
 });

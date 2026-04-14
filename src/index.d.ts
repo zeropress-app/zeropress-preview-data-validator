@@ -1,4 +1,5 @@
 export type PreviewStatus = 'published' | 'draft';
+export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
 
 export interface ValidationIssue {
   code: string;
@@ -11,16 +12,20 @@ export interface PreviewSiteData {
   title: string;
   description: string;
   url: string;
-  mediaBaseUrl?: string;
+  mediaBaseUrl: string;
   locale: string;
   postsPerPage: number;
   dateFormat: string;
   timeFormat: string;
   timezone: string;
   disallowComments: boolean;
-  logo?: string;
-  social?: Record<string, string>;
   [key: string]: unknown;
+}
+
+export interface PreviewAuthorData {
+  id: string;
+  display_name: string;
+  avatar?: string;
 }
 
 export interface PreviewPostData {
@@ -28,12 +33,12 @@ export interface PreviewPostData {
   public_id: number;
   title: string;
   slug: string;
-  html: string;
+  content: string;
+  document_type: PreviewDocumentType;
   excerpt: string;
   published_at_iso: string;
   updated_at_iso: string;
-  author_name: string;
-  author_avatar?: string;
+  author_id: string;
   featured_image?: string;
   status: PreviewStatus;
   allow_comments: boolean;
@@ -45,7 +50,8 @@ export interface PreviewPageData {
   id: string;
   title: string;
   slug: string;
-  html: string;
+  content: string;
+  document_type: PreviewDocumentType;
   excerpt?: string;
   featured_image?: string;
   status: PreviewStatus;
@@ -66,14 +72,15 @@ export interface PreviewTagData {
 }
 
 export interface PreviewContentData {
+  authors: PreviewAuthorData[];
   posts: PreviewPostData[];
   pages: PreviewPageData[];
   categories: PreviewCategoryData[];
   tags: PreviewTagData[];
 }
 
-export interface PreviewDataV04 {
-  version: '0.4';
+export interface PreviewDataV05 {
+  version: '0.5';
   generator: string;
   generated_at: string;
   site: PreviewSiteData;
@@ -86,8 +93,8 @@ export interface PreviewDataValidationResult {
   warnings: ValidationIssue[];
 }
 
-export const PREVIEW_DATA_VERSION: '0.4';
+export const PREVIEW_DATA_VERSION: '0.5';
 
 export function validatePreviewData(data: unknown): PreviewDataValidationResult;
 export function assertPreviewData<T>(data: T): T;
-export function isPreviewData(data: unknown): data is PreviewDataV04;
+export function isPreviewData(data: unknown): data is PreviewDataV05;

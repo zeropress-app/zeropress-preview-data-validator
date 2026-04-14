@@ -1,4 +1,6 @@
-export const PREVIEW_DATA_VERSION = '0.4';
+export const PREVIEW_DATA_VERSION = '0.5';
+
+const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
 
 export function validatePreviewData(data) {
   const errors = [];
@@ -43,28 +45,13 @@ function validateSite(site, path, errors) {
   validateNonEmptyString(site.title, `${path}.title`, 'INVALID_SITE_TITLE', errors);
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
-  if (site.mediaBaseUrl !== undefined) {
-    validateUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
-  }
+  validateSiteUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
   validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
   validateString(site.timeFormat, `${path}.timeFormat`, 'INVALID_SITE_TIME_FORMAT', errors);
   validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
   validateBoolean(site.disallowComments, `${path}.disallowComments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
-
-  if (site.logo !== undefined) {
-    validateUri(site.logo, `${path}.logo`, 'INVALID_SITE_LOGO', errors);
-  }
-
-  if (site.social !== undefined) {
-    validateObject(site.social, `${path}.social`, 'INVALID_SITE_SOCIAL', errors);
-    if (isObject(site.social)) {
-      for (const [key, value] of Object.entries(site.social)) {
-        validateString(value, `${path}.social.${key}`, 'INVALID_SITE_SOCIAL_VALUE', errors);
-      }
-    }
-  }
 
   rejectLegacyKeys(site, path, errors, [
     'site_name',
@@ -82,13 +69,15 @@ function validateSite(site, path, errors) {
 }
 
 function validateContent(content, path, errors) {
-  validateClosedObject(content, path, errors, ['posts', 'pages', 'categories', 'tags']);
+  validateClosedObject(content, path, errors, ['authors', 'posts', 'pages', 'categories', 'tags']);
   if (!isObject(content)) {
     return;
   }
 
+  const authorIds = validateAuthorArray(content.authors, `${path}.authors`, errors);
+
   validateArray(content.posts, `${path}.posts`, 'INVALID_POSTS', errors, (entry, index) => {
-    validatePreviewPost(entry, `${path}.posts[${index}]`, errors);
+    validatePreviewPost(entry, `${path}.posts[${index}]`, errors, authorIds);
   });
   validateArray(content.pages, `${path}.pages`, 'INVALID_PAGES', errors, (entry, index) => {
     validatePreviewPage(entry, `${path}.pages[${index}]`, errors);
@@ -101,18 +90,53 @@ function validateContent(content, path, errors) {
   });
 }
 
-function validatePreviewPost(post, path, errors) {
+function validateAuthorArray(value, path, errors) {
+  const ids = new Set();
+
+  validateArray(value, path, 'INVALID_AUTHORS', errors, (entry, index) => {
+    validatePreviewAuthor(entry, `${path}[${index}]`, errors);
+
+    if (!isObject(entry) || typeof entry.id !== 'string' || entry.id.trim() === '') {
+      return;
+    }
+
+    if (ids.has(entry.id)) {
+      errors.push(issue('DUPLICATE_AUTHOR_ID', `${path}[${index}].id`, 'Author ids must be unique'));
+      return;
+    }
+
+    ids.add(entry.id);
+  });
+
+  return ids;
+}
+
+function validatePreviewAuthor(author, path, errors) {
+  validateClosedObject(author, path, errors, ['id', 'display_name', 'avatar']);
+  if (!isObject(author)) {
+    return;
+  }
+
+  validateNonEmptyString(author.id, `${path}.id`, 'INVALID_AUTHOR_ID', errors);
+  validateNonEmptyString(author.display_name, `${path}.display_name`, 'INVALID_AUTHOR_DISPLAY_NAME', errors);
+
+  if (author.avatar !== undefined) {
+    validateUrlLike(author.avatar, `${path}.avatar`, 'INVALID_AUTHOR_AVATAR', errors);
+  }
+}
+
+function validatePreviewPost(post, path, errors, authorIds) {
   validateClosedObject(post, path, errors, [
     'id',
     'public_id',
     'title',
     'slug',
-    'html',
+    'content',
+    'document_type',
     'excerpt',
     'published_at_iso',
     'updated_at_iso',
-    'author_name',
-    'author_avatar',
+    'author_id',
     'featured_image',
     'status',
     'allow_comments',
@@ -127,26 +151,28 @@ function validatePreviewPost(post, path, errors) {
   validateInteger(post.public_id, `${path}.public_id`, 'INVALID_POST_PUBLIC_ID', errors, { minimum: 1 });
   validateNonEmptyString(post.title, `${path}.title`, 'INVALID_POST_TITLE', errors);
   validateNonEmptyString(post.slug, `${path}.slug`, 'INVALID_POST_SLUG', errors);
-  validateString(post.html, `${path}.html`, 'INVALID_POST_HTML', errors);
+  validateString(post.content, `${path}.content`, 'INVALID_POST_CONTENT', errors);
+  validateEnum(post.document_type, `${path}.document_type`, 'INVALID_POST_DOCUMENT_TYPE', errors, PREVIEW_DOCUMENT_TYPES);
   validateString(post.excerpt, `${path}.excerpt`, 'INVALID_POST_EXCERPT', errors);
   validateDateTimeString(post.published_at_iso, `${path}.published_at_iso`, 'INVALID_POST_PUBLISHED_AT_ISO', errors);
   validateDateTimeString(post.updated_at_iso, `${path}.updated_at_iso`, 'INVALID_POST_UPDATED_AT_ISO', errors);
-  validateNonEmptyString(post.author_name, `${path}.author_name`, 'INVALID_POST_AUTHOR_NAME', errors);
+  validateNonEmptyString(post.author_id, `${path}.author_id`, 'INVALID_POST_AUTHOR_ID', errors);
   validateEnum(post.status, `${path}.status`, 'INVALID_POST_STATUS', errors, ['published', 'draft']);
   validateBoolean(post.allow_comments, `${path}.allow_comments`, 'INVALID_POST_ALLOW_COMMENTS', errors);
   validateSlugArray(post.category_slugs, `${path}.category_slugs`, 'INVALID_POST_CATEGORY_SLUGS', errors);
   validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors);
 
-  if (post.author_avatar !== undefined) {
-    validateUrlLike(post.author_avatar, `${path}.author_avatar`, 'INVALID_POST_AUTHOR_AVATAR', errors);
-  }
   if (post.featured_image !== undefined) {
     validateUrlLike(post.featured_image, `${path}.featured_image`, 'INVALID_POST_FEATURED_IMAGE', errors);
+  }
+
+  if (typeof post.author_id === 'string' && post.author_id.trim() !== '' && !authorIds.has(post.author_id)) {
+    errors.push(issue('INVALID_POST_AUTHOR_REFERENCE', `${path}.author_id`, 'Referenced author_id does not exist'));
   }
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['id', 'title', 'slug', 'html', 'excerpt', 'featured_image', 'status']);
+  validateClosedObject(page, path, errors, ['id', 'title', 'slug', 'content', 'document_type', 'excerpt', 'featured_image', 'status']);
   if (!isObject(page)) {
     return;
   }
@@ -154,7 +180,8 @@ function validatePreviewPage(page, path, errors) {
   validateNonEmptyString(page.id, `${path}.id`, 'INVALID_PAGE_ID', errors);
   validateNonEmptyString(page.title, `${path}.title`, 'INVALID_PAGE_TITLE', errors);
   validateNonEmptyString(page.slug, `${path}.slug`, 'INVALID_PAGE_SLUG', errors);
-  validateString(page.html, `${path}.html`, 'INVALID_PAGE_HTML', errors);
+  validateString(page.content, `${path}.content`, 'INVALID_PAGE_CONTENT', errors);
+  validateEnum(page.document_type, `${path}.document_type`, 'INVALID_PAGE_DOCUMENT_TYPE', errors, PREVIEW_DOCUMENT_TYPES);
   if (page.excerpt !== undefined) {
     validateString(page.excerpt, `${path}.excerpt`, 'INVALID_PAGE_EXCERPT', errors);
   }
@@ -221,11 +248,11 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 }
 
 function isOptionalKey(path, key) {
-  if (path === 'site') {
-    return key === 'logo' || key === 'social';
+  if (path.startsWith('content.authors[')) {
+    return key === 'avatar';
   }
   if (path.startsWith('content.posts[')) {
-    return key === 'author_avatar' || key === 'featured_image';
+    return key === 'featured_image';
   }
   if (path.startsWith('content.pages[')) {
     return key === 'excerpt' || key === 'featured_image';
@@ -267,7 +294,7 @@ function validateSlugArray(value, path, code, errors) {
 function rejectLegacyKeys(value, path, errors, keys, code) {
   for (const key of keys) {
     if (key in value) {
-      errors.push(issue(code, `${path}.${key}`, 'Legacy field is not allowed in preview-data v0.4'));
+      errors.push(issue(code, `${path}.${key}`, 'Legacy field is not allowed in preview-data v0.5'));
     }
   }
 }
@@ -338,10 +365,21 @@ function validateUri(value, path, code, errors) {
   }
 
   try {
-    new URL(value);
+    const url = new URL(value);
+    if (!url.protocol || !url.hostname) {
+      errors.push(issue(code, path, 'Expected an absolute URI'));
+    }
   } catch {
     errors.push(issue(code, path, 'Expected a valid URI'));
   }
+}
+
+function validateSiteUri(value, path, code, errors) {
+  if (value === '') {
+    return;
+  }
+
+  validateUri(value, path, code, errors);
 }
 
 function validateUrlLike(value, path, code, errors) {
@@ -351,45 +389,16 @@ function validateUrlLike(value, path, code, errors) {
   }
 
   const trimmed = value.trim();
-
-  if (isAbsoluteUrl(trimmed)) {
+  if (trimmed.startsWith('//')) {
+    errors.push(issue(code, path, 'Expected an absolute URI or a safe relative path'));
     return;
   }
 
-  if (looksLikeRelativeUrl(trimmed)) {
+  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
     return;
   }
 
-  errors.push(issue(code, path, 'Expected a valid absolute URL or relative path'));
-}
-
-function isAbsoluteUrl(value) {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function looksLikeRelativeUrl(value) {
-  if (value.startsWith('//')) {
-    return false;
-  }
-
-  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
-    return false;
-  }
-
-  return !/[\r\n\t]/.test(value);
-}
-
-function validateSiteUri(value, path, code, errors) {
-  if (value === '') {
-    return;
-  }
-
-  validateUri(value, path, code, errors);
+  validateUri(trimmed, path, code, errors);
 }
 
 function issue(code, path, message) {
