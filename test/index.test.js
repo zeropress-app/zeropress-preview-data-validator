@@ -12,7 +12,7 @@ function createValidPreviewData() {
   return {
     version: PREVIEW_DATA_VERSION,
     generator: 'zeropress-preview-data-validator-test',
-    generated_at: '2026-03-26T00:00:00.000Z',
+    generated_at: '2026-03-26T00:00:00Z',
     site: {
       title: 'ZeroPress Preview',
       description: 'Preview contract fixture',
@@ -35,8 +35,8 @@ function createValidPreviewData() {
           slug: 'hello-zeropress',
           html: '<p>Preview post content</p>',
           excerpt: 'Preview excerpt',
-          published_at_iso: '2026-03-25T09:00:00.000Z',
-          updated_at_iso: '2026-03-25T09:00:00.000Z',
+          published_at_iso: '2026-03-25T09:00:00Z',
+          updated_at_iso: '2026-03-25T09:00:00Z',
           author_name: 'Admin',
           status: 'published',
           allow_comments: true,
