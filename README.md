@@ -46,10 +46,16 @@ Published schema files are shipped from the package `schemas/` directory.
 - authors are deduplicated in `content.authors[]`
 - posts reference authors via `author_id`
 - body source is carried as raw `content` with explicit `document_type`
+- pages, categories, and tags do not carry internal `id` fields
 - `site.mediaBaseUrl` is required and must be either an empty string or an absolute URI
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
 - comment rendering policy is carried as `site.disallowComments`
+- enabled menus are exported in root `menus`
+- `menus` is keyed by stable `menu_id`
+- menu items use `title`, `url`, `type`, `target`, and recursive `children`
+- menu item `target` is `_self` or `_blank`
+- menu items do not carry admin-only fields such as `reference_id`
 
 Build tooling is responsible for resolving authors and deriving render-ready route data, including HTML conversion for non-HTML source content.
 

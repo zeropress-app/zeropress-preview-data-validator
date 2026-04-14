@@ -54,7 +54,6 @@ function createValidPreviewData() {
       ],
       pages: [
         {
-          id: 'page-1',
           title: 'About',
           slug: 'about',
           content: '<p>About page</p>',
@@ -66,7 +65,6 @@ function createValidPreviewData() {
       ],
       categories: [
         {
-          id: 'cat-1',
           name: 'General',
           slug: 'general',
           description: 'General posts',
@@ -74,12 +72,25 @@ function createValidPreviewData() {
       ],
       tags: [
         {
-          id: 'tag-1',
           name: 'Intro',
           slug: 'intro',
           description: 'Intro tag',
         },
       ],
+    },
+    menus: {
+      primary: {
+        name: 'Primary Menu',
+        items: [
+          {
+            title: 'Home',
+            url: '/',
+            type: 'custom',
+            target: '_self',
+            children: [],
+          },
+        ],
+      },
     },
   };
 }
@@ -97,6 +108,75 @@ test('validatePreviewData rejects missing public_id', () => {
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].public_id'), true);
+});
+
+test('validatePreviewData rejects missing menus', () => {
+  const data = createValidPreviewData();
+  delete data.menus;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'menus'), true);
+});
+
+test('validatePreviewData accepts nested menus of arbitrary depth', () => {
+  const data = createValidPreviewData();
+  data.menus.docs_sidebar = {
+    name: 'Docs Sidebar',
+    items: [
+      {
+        title: 'Workers',
+        url: '/workers/',
+        type: 'page',
+        target: '_self',
+        children: [
+          {
+            title: 'CLI',
+            url: '/workers/cli/',
+            type: 'page',
+            target: '_self',
+            children: [
+              {
+                title: 'Install',
+                url: '/workers/cli/install/',
+                type: 'page',
+                target: '_self',
+                children: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid menu item target and legacy menu fields', () => {
+  const data = createValidPreviewData();
+  data.menus.primary.items[0].target = '_parent';
+  data.menus.primary.items[0].label = 'Home';
+  data.menus.primary.items[0].open_in_new_tab = false;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].target'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].label'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].open_in_new_tab'), true);
+});
+
+test('validatePreviewData rejects invalid menu_id keys', () => {
+  const data = createValidPreviewData();
+  data.menus['Primary Menu'] = {
+    name: 'Primary Menu',
+    items: [],
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.code === 'INVALID_MENU_ID'), true);
 });
 
 test('validatePreviewData rejects missing document_type on post or page', () => {
@@ -200,6 +280,19 @@ test('validatePreviewData allows content category and tag descriptions to be omi
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects removed id fields on pages, categories, and tags', () => {
+  const data = createValidPreviewData();
+  data.content.pages[0].id = 'page-1';
+  data.content.categories[0].id = 'cat-1';
+  data.content.tags[0].id = 'tag-1';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].id'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.categories[0].id'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.tags[0].id'), true);
 });
 
 test('validatePreviewData allows relative author avatar and relative featured_image', () => {

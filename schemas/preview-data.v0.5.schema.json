@@ -2,26 +2,37 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://zeropress.dev/schemas/preview-data.v0.5.schema.json",
   "title": "ZeroPress Theme Preview Data v0.5",
+  "description": "ZeroPress theme preview payload. v0.5 is data-only and includes enabled menus keyed by menu_id.",
+  "markdownDescription": "ZeroPress theme preview payload. `v0.5` is data-only and includes enabled menus keyed by `menu_id`.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "generator", "generated_at", "site", "content"],
+  "required": ["version", "generator", "generated_at", "site", "content", "menus"],
   "properties": {
     "version": {
-      "const": "0.5"
+      "const": "0.5",
+      "description": "Preview-data contract version.",
+      "markdownDescription": "Preview-data contract version."
     },
     "generator": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Identifier of the generator that produced this payload.",
+      "markdownDescription": "Identifier of the generator that produced this payload."
     },
     "generated_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "UTC timestamp when the payload was generated.",
+      "markdownDescription": "UTC timestamp when the payload was generated."
     },
     "site": {
       "$ref": "#/$defs/site"
     },
     "content": {
       "$ref": "#/$defs/content"
+    },
+    "menus": {
+      "$ref": "#/$defs/menus"
     }
   },
   "$defs": {
@@ -40,8 +51,13 @@
         "disallowComments"
       ],
       "properties": {
-        "title": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
         "url": {
           "type": "string",
           "anyOf": [
@@ -56,12 +72,28 @@
             { "format": "uri" }
           ]
         },
-        "locale": { "type": "string", "minLength": 2 },
-        "postsPerPage": { "type": "integer", "minimum": 1 },
-        "dateFormat": { "type": "string", "minLength": 1 },
-        "timeFormat": { "type": "string" },
-        "timezone": { "type": "string", "minLength": 1 },
-        "disallowComments": { "type": "boolean" }
+        "locale": {
+          "type": "string",
+          "minLength": 2
+        },
+        "postsPerPage": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dateFormat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timeFormat": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disallowComments": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": true
     },
@@ -70,9 +102,18 @@
       "additionalProperties": false,
       "required": ["id", "display_name"],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "display_name": { "type": "string", "minLength": 1 },
-        "avatar": { "type": "string", "minLength": 1 }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "avatar": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "post": {
@@ -95,50 +136,98 @@
         "tag_slugs"
       ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "public_id": { "type": "integer", "minimum": 1 },
-        "title": { "type": "string", "minLength": 1 },
-        "slug": { "type": "string", "minLength": 1 },
-        "content": { "type": "string" },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "public_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "type": "string"
+        },
         "document_type": {
           "type": "string",
           "enum": ["plaintext", "markdown", "html"]
         },
-        "excerpt": { "type": "string" },
-        "published_at_iso": { "type": "string", "format": "date-time" },
-        "updated_at_iso": { "type": "string", "format": "date-time" },
-        "author_id": { "type": "string", "minLength": 1 },
-        "featured_image": { "type": "string", "minLength": 1 },
+        "excerpt": {
+          "type": "string"
+        },
+        "published_at_iso": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at_iso": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "author_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "featured_image": {
+          "type": "string",
+          "minLength": 1
+        },
         "status": {
           "type": "string",
           "enum": ["published", "draft"]
         },
-        "allow_comments": { "type": "boolean" },
+        "allow_comments": {
+          "type": "boolean"
+        },
         "category_slugs": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "tag_slugs": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
     "page": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "slug", "content", "document_type", "status"],
+      "required": ["title", "slug", "content", "document_type", "status"],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "title": { "type": "string", "minLength": 1 },
-        "slug": { "type": "string", "minLength": 1 },
-        "content": { "type": "string" },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "type": "string"
+        },
         "document_type": {
           "type": "string",
           "enum": ["plaintext", "markdown", "html"]
         },
-        "excerpt": { "type": "string" },
-        "featured_image": { "type": "string", "minLength": 1 },
+        "excerpt": {
+          "type": "string"
+        },
+        "featured_image": {
+          "type": "string",
+          "minLength": 1
+        },
         "status": {
           "type": "string",
           "enum": ["published", "draft"]
@@ -148,23 +237,116 @@
     "category": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "slug"],
+      "required": ["name", "slug"],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "name": { "type": "string", "minLength": 1 },
-        "slug": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" }
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        }
       }
     },
     "tag": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "slug"],
+      "required": ["name", "slug"],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "name": { "type": "string", "minLength": 1 },
-        "slug": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" }
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "menuItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "url", "type", "target", "children"],
+      "description": "Theme-facing navigation item. Children may be nested to any depth.",
+      "markdownDescription": "Theme-facing navigation item. `children` may be nested to any depth.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display title shown by the theme.",
+          "markdownDescription": "Display title shown by the theme."
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolved absolute URI or safe relative path.",
+          "markdownDescription": "Resolved absolute URI or safe relative path."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["custom", "page", "post", "category"],
+          "description": "Origin type of the menu item.",
+          "markdownDescription": "Origin type of the menu item."
+        },
+        "target": {
+          "type": "string",
+          "enum": ["_self", "_blank"],
+          "description": "Link target semantics for the theme.",
+          "markdownDescription": "Link target semantics for the theme."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Nested child menu items.",
+          "markdownDescription": "Nested child menu items."
+        }
+      }
+    },
+    "menu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "items"],
+      "description": "A named enabled menu exported to themes under its menu_id key.",
+      "markdownDescription": "A named enabled menu exported to themes under its `menu_id` key.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable menu name for development and diagnostics.",
+          "markdownDescription": "Human-readable menu name for development and diagnostics."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Resolved menu tree after omission of missing references.",
+          "markdownDescription": "Resolved menu tree after omission of missing references."
+        }
+      }
+    },
+    "menus": {
+      "type": "object",
+      "default": {},
+      "description": "Enabled menus keyed by menu_id. Disabled menus and absent menu_ids are omitted.",
+      "markdownDescription": "Enabled menus keyed by `menu_id`. Disabled menus and absent `menu_id`s are omitted.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable external menu identifier.",
+        "markdownDescription": "Stable external `menu_id` identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/menu"
       }
     },
     "content": {
@@ -174,23 +356,33 @@
       "properties": {
         "authors": {
           "type": "array",
-          "items": { "$ref": "#/$defs/author" }
+          "items": {
+            "$ref": "#/$defs/author"
+          }
         },
         "posts": {
           "type": "array",
-          "items": { "$ref": "#/$defs/post" }
+          "items": {
+            "$ref": "#/$defs/post"
+          }
         },
         "pages": {
           "type": "array",
-          "items": { "$ref": "#/$defs/page" }
+          "items": {
+            "$ref": "#/$defs/page"
+          }
         },
         "categories": {
           "type": "array",
-          "items": { "$ref": "#/$defs/category" }
+          "items": {
+            "$ref": "#/$defs/category"
+          }
         },
         "tags": {
           "type": "array",
-          "items": { "$ref": "#/$defs/tag" }
+          "items": {
+            "$ref": "#/$defs/tag"
+          }
         }
       }
     }

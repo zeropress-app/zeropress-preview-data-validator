@@ -1,11 +1,14 @@
 export const PREVIEW_DATA_VERSION = '0.5';
 
 const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
+const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
+const PREVIEW_MENU_TARGETS = ['_self', '_blank'];
+const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content']);
+  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'menus']);
 
   if (isObject(data)) {
     validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
@@ -14,6 +17,7 @@ export function validatePreviewData(data) {
 
     validateSite(data.site, 'site', errors);
     validateContent(data.content, 'content', errors);
+    validateMenus(data.menus, 'menus', errors);
   }
 
   return {
@@ -88,6 +92,50 @@ function validateContent(content, path, errors) {
   validateArray(content.tags, `${path}.tags`, 'INVALID_TAGS', errors, (entry, index) => {
     validatePreviewTag(entry, `${path}.tags[${index}]`, errors);
   });
+}
+
+function validateMenus(menus, path, errors) {
+  validateObject(menus, path, 'INVALID_MENUS', errors);
+  if (!isObject(menus)) {
+    return;
+  }
+
+  for (const [menuId, menu] of Object.entries(menus)) {
+    if (!PREVIEW_MENU_ID_PATTERN.test(menuId)) {
+      errors.push(issue('INVALID_MENU_ID', `${path}.${menuId}`, 'Menu ids must match ^[a-z][a-z0-9_-]{0,63}$'));
+    }
+
+    validatePreviewMenu(menu, `${path}.${menuId}`, errors);
+  }
+}
+
+function validatePreviewMenu(menu, path, errors) {
+  validateClosedObject(menu, path, errors, ['name', 'items']);
+  if (!isObject(menu)) {
+    return;
+  }
+
+  validateNonEmptyString(menu.name, `${path}.name`, 'INVALID_MENU_NAME', errors);
+  validateArray(menu.items, `${path}.items`, 'INVALID_MENU_ITEMS', errors, (entry, index) => {
+    validatePreviewMenuItem(entry, `${path}.items[${index}]`, errors);
+  });
+}
+
+function validatePreviewMenuItem(item, path, errors) {
+  validateClosedObject(item, path, errors, ['title', 'url', 'type', 'target', 'children']);
+  if (!isObject(item)) {
+    return;
+  }
+
+  validateNonEmptyString(item.title, `${path}.title`, 'INVALID_MENU_ITEM_TITLE', errors);
+  validateUrlLike(item.url, `${path}.url`, 'INVALID_MENU_ITEM_URL', errors);
+  validateEnum(item.type, `${path}.type`, 'INVALID_MENU_ITEM_TYPE', errors, PREVIEW_MENU_ITEM_TYPES);
+  validateEnum(item.target, `${path}.target`, 'INVALID_MENU_ITEM_TARGET', errors, PREVIEW_MENU_TARGETS);
+  validateArray(item.children, `${path}.children`, 'INVALID_MENU_ITEM_CHILDREN', errors, (entry, index) => {
+    validatePreviewMenuItem(entry, `${path}.children[${index}]`, errors);
+  });
+
+  rejectLegacyKeys(item, path, errors, ['label', 'open_in_new_tab', 'reference_id', 'reference_exists', 'id'], 'INVALID_LEGACY_MENU_FIELD');
 }
 
 function validateAuthorArray(value, path, errors) {
@@ -172,12 +220,11 @@ function validatePreviewPost(post, path, errors, authorIds) {
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['id', 'title', 'slug', 'content', 'document_type', 'excerpt', 'featured_image', 'status']);
+  validateClosedObject(page, path, errors, ['title', 'slug', 'content', 'document_type', 'excerpt', 'featured_image', 'status']);
   if (!isObject(page)) {
     return;
   }
 
-  validateNonEmptyString(page.id, `${path}.id`, 'INVALID_PAGE_ID', errors);
   validateNonEmptyString(page.title, `${path}.title`, 'INVALID_PAGE_TITLE', errors);
   validateNonEmptyString(page.slug, `${path}.slug`, 'INVALID_PAGE_SLUG', errors);
   validateString(page.content, `${path}.content`, 'INVALID_PAGE_CONTENT', errors);
@@ -192,12 +239,11 @@ function validatePreviewPage(page, path, errors) {
 }
 
 function validatePreviewCategory(category, path, errors) {
-  validateClosedObject(category, path, errors, ['id', 'name', 'slug', 'description']);
+  validateClosedObject(category, path, errors, ['name', 'slug', 'description']);
   if (!isObject(category)) {
     return;
   }
 
-  validateNonEmptyString(category.id, `${path}.id`, 'INVALID_CATEGORY_ID', errors);
   validateNonEmptyString(category.name, `${path}.name`, 'INVALID_CATEGORY_NAME', errors);
   validateNonEmptyString(category.slug, `${path}.slug`, 'INVALID_CATEGORY_SLUG', errors);
   if (category.description !== undefined) {
@@ -206,12 +252,11 @@ function validatePreviewCategory(category, path, errors) {
 }
 
 function validatePreviewTag(tag, path, errors) {
-  validateClosedObject(tag, path, errors, ['id', 'name', 'slug', 'description']);
+  validateClosedObject(tag, path, errors, ['name', 'slug', 'description']);
   if (!isObject(tag)) {
     return;
   }
 
-  validateNonEmptyString(tag.id, `${path}.id`, 'INVALID_TAG_ID', errors);
   validateNonEmptyString(tag.name, `${path}.name`, 'INVALID_TAG_NAME', errors);
   validateNonEmptyString(tag.slug, `${path}.slug`, 'INVALID_TAG_SLUG', errors);
   if (tag.description !== undefined) {

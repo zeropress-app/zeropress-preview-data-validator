@@ -47,7 +47,6 @@ export interface PreviewPostData {
 }
 
 export interface PreviewPageData {
-  id: string;
   title: string;
   slug: string;
   content: string;
@@ -58,17 +57,31 @@ export interface PreviewPageData {
 }
 
 export interface PreviewCategoryData {
-  id: string;
   name: string;
   slug: string;
   description?: string;
 }
 
 export interface PreviewTagData {
-  id: string;
   name: string;
   slug: string;
   description?: string;
+}
+
+export type PreviewMenuItemType = 'custom' | 'page' | 'post' | 'category';
+export type PreviewMenuItemTarget = '_self' | '_blank';
+
+export interface PreviewMenuItemData {
+  title: string;
+  url: string;
+  type: PreviewMenuItemType;
+  target: PreviewMenuItemTarget;
+  children: PreviewMenuItemData[];
+}
+
+export interface PreviewMenuData {
+  name: string;
+  items: PreviewMenuItemData[];
 }
 
 export interface PreviewContentData {
@@ -85,6 +98,7 @@ export interface PreviewDataV05 {
   generated_at: string;
   site: PreviewSiteData;
   content: PreviewContentData;
+  menus: Record<string, PreviewMenuData>;
 }
 
 export interface PreviewDataValidationResult {
