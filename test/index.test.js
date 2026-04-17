@@ -95,10 +95,103 @@ function createValidPreviewData() {
   };
 }
 
+function getIssueAtPath(result, issuePath) {
+  return result.errors.find((issue) => issue.path === issuePath);
+}
+
 test('validatePreviewData accepts a valid v0.5 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData accepts valid Unicode and Hangul slug segments', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].slug = '안녕하세요-제로프레스';
+  data.content.pages[0].slug = '회사소개';
+  data.content.categories[0].slug = '디자인';
+  data.content.tags[0].slug = '한글';
+  data.content.posts[0].category_slugs = ['디자인'];
+  data.content.posts[0].tag_slugs = ['한글'];
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects a post slug of "."', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].slug = '.';
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.posts[0].slug');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_POST_SLUG');
+});
+
+test('validatePreviewData rejects a post slug of ".."', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].slug = '..';
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.posts[0].slug');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_POST_SLUG');
+});
+
+test('validatePreviewData rejects traversal-looking post slugs', () => {
+  const cases = ['../escape', 'a/b', 'a\\b', '%2e%2e', ' hello '];
+
+  for (const slug of cases) {
+    const data = createValidPreviewData();
+    data.content.posts[0].slug = slug;
+
+    const result = validatePreviewData(data);
+    const issue = getIssueAtPath(result, 'content.posts[0].slug');
+
+    assert.equal(result.ok, false, `Expected ${slug} to be rejected`);
+    assert.ok(issue, `Expected an issue for ${slug}`);
+    assert.equal(issue.code, 'INVALID_POST_SLUG');
+  }
+});
+
+test('validatePreviewData rejects unsafe category slug values', () => {
+  const data = createValidPreviewData();
+  data.content.categories[0].slug = '../cat';
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.categories[0].slug');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_CATEGORY_SLUG');
+});
+
+test('validatePreviewData rejects unsafe post category_slugs entries', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].category_slugs = ['../cat'];
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.posts[0].category_slugs[0]');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_POST_CATEGORY_SLUGS');
+});
+
+test('validatePreviewData rejects unsafe post tag_slugs entries', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].tag_slugs = ['%2e%2e'];
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.posts[0].tag_slugs[0]');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_POST_TAG_SLUGS');
 });
 
 test('validatePreviewData rejects missing public_id', () => {

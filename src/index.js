@@ -4,6 +4,7 @@ const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
 const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
 const PREVIEW_MENU_TARGETS = ['_self', '_blank'];
 const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
+const CONTROL_CHAR_PATTERN = /[\u0000-\u001F\u007F]/;
 
 export function validatePreviewData(data) {
   const errors = [];
@@ -198,7 +199,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
   validateNonEmptyString(post.id, `${path}.id`, 'INVALID_POST_ID', errors);
   validateInteger(post.public_id, `${path}.public_id`, 'INVALID_POST_PUBLIC_ID', errors, { minimum: 1 });
   validateNonEmptyString(post.title, `${path}.title`, 'INVALID_POST_TITLE', errors);
-  validateNonEmptyString(post.slug, `${path}.slug`, 'INVALID_POST_SLUG', errors);
+  validateSlugSegment(post.slug, `${path}.slug`, 'INVALID_POST_SLUG', errors);
   validateString(post.content, `${path}.content`, 'INVALID_POST_CONTENT', errors);
   validateEnum(post.document_type, `${path}.document_type`, 'INVALID_POST_DOCUMENT_TYPE', errors, PREVIEW_DOCUMENT_TYPES);
   validateString(post.excerpt, `${path}.excerpt`, 'INVALID_POST_EXCERPT', errors);
@@ -226,7 +227,7 @@ function validatePreviewPage(page, path, errors) {
   }
 
   validateNonEmptyString(page.title, `${path}.title`, 'INVALID_PAGE_TITLE', errors);
-  validateNonEmptyString(page.slug, `${path}.slug`, 'INVALID_PAGE_SLUG', errors);
+  validateSlugSegment(page.slug, `${path}.slug`, 'INVALID_PAGE_SLUG', errors);
   validateString(page.content, `${path}.content`, 'INVALID_PAGE_CONTENT', errors);
   validateEnum(page.document_type, `${path}.document_type`, 'INVALID_PAGE_DOCUMENT_TYPE', errors, PREVIEW_DOCUMENT_TYPES);
   if (page.excerpt !== undefined) {
@@ -245,7 +246,7 @@ function validatePreviewCategory(category, path, errors) {
   }
 
   validateNonEmptyString(category.name, `${path}.name`, 'INVALID_CATEGORY_NAME', errors);
-  validateNonEmptyString(category.slug, `${path}.slug`, 'INVALID_CATEGORY_SLUG', errors);
+  validateSlugSegment(category.slug, `${path}.slug`, 'INVALID_CATEGORY_SLUG', errors);
   if (category.description !== undefined) {
     validateString(category.description, `${path}.description`, 'INVALID_CATEGORY_DESCRIPTION', errors);
   }
@@ -258,7 +259,7 @@ function validatePreviewTag(tag, path, errors) {
   }
 
   validateNonEmptyString(tag.name, `${path}.name`, 'INVALID_TAG_NAME', errors);
-  validateNonEmptyString(tag.slug, `${path}.slug`, 'INVALID_TAG_SLUG', errors);
+  validateSlugSegment(tag.slug, `${path}.slug`, 'INVALID_TAG_SLUG', errors);
   if (tag.description !== undefined) {
     validateString(tag.description, `${path}.description`, 'INVALID_TAG_DESCRIPTION', errors);
   }
@@ -332,7 +333,33 @@ function validateSlugArray(value, path, code, errors) {
   }
 
   for (const [index, entry] of value.entries()) {
-    validateNonEmptyString(entry, `${path}[${index}]`, code, errors);
+    validateSlugSegment(entry, `${path}[${index}]`, code, errors);
+  }
+}
+
+function validateSlugSegment(value, path, code, errors) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    errors.push(issue(code, path, 'Slug must be a non-empty string'));
+    return;
+  }
+
+  if (value.trim() !== value) {
+    errors.push(issue(code, path, 'Slug must not contain leading or trailing whitespace'));
+    return;
+  }
+
+  if (value === '.' || value === '..') {
+    errors.push(issue(code, path, 'Slug must not be "." or ".."'));
+    return;
+  }
+
+  if (value.includes('/') || value.includes('\\')) {
+    errors.push(issue(code, path, 'Slug must be a single safe path segment'));
+    return;
+  }
+
+  if (value.includes('%') || CONTROL_CHAR_PATTERN.test(value)) {
+    errors.push(issue(code, path, 'Slug must not contain percent-encoding or control characters'));
   }
 }
 
