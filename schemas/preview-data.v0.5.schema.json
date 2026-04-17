@@ -36,6 +36,13 @@
     }
   },
   "$defs": {
+    "slugSegment": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A single safe URL path segment. Unicode is allowed, but path separators, percent-encoding, control characters, whitespace-only values, and reserved dot segments are not.",
+      "markdownDescription": "A single safe URL path segment. Unicode is allowed, but path separators, percent-encoding, control characters, whitespace-only values, and reserved dot segments are not.",
+      "pattern": "^(?!\\.{1,2}$)(?!.*[%/\\\\\\s\\u0000-\\u001F\\u007F]).+$"
+    },
     "site": {
       "type": "object",
       "required": [
@@ -149,8 +156,7 @@
           "minLength": 1
         },
         "slug": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/slugSegment"
         },
         "content": {
           "type": "string"
@@ -188,15 +194,13 @@
         "category_slugs": {
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/slugSegment"
           }
         },
         "tag_slugs": {
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/slugSegment"
           }
         }
       }
@@ -211,8 +215,7 @@
           "minLength": 1
         },
         "slug": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/slugSegment"
         },
         "content": {
           "type": "string"
@@ -244,8 +247,7 @@
           "minLength": 1
         },
         "slug": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/slugSegment"
         },
         "description": {
           "type": "string"
@@ -262,8 +264,7 @@
           "minLength": 1
         },
         "slug": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/slugSegment"
         },
         "description": {
           "type": "string"
