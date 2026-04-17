@@ -143,7 +143,7 @@ test('validatePreviewData rejects a post slug of ".."', () => {
 });
 
 test('validatePreviewData rejects traversal-looking post slugs', () => {
-  const cases = ['../escape', 'a/b', 'a\\b', '%2e%2e', ' hello '];
+  const cases = ['../escape', 'a/b', 'a\\b', '%2e%2e', ' hello ', 'hello world'];
 
   for (const slug of cases) {
     const data = createValidPreviewData();

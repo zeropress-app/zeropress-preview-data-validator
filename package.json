@@ -23,6 +23,9 @@
   "scripts": {
     "test": "node --test"
   },
+  "dependencies": {
+    "@zeropress/slug-policy": "^0.1.0"
+  },
   "engines": {
     "node": ">=18.18.0"
   }

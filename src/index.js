@@ -1,10 +1,11 @@
+import { SLUG_SEGMENT_ISSUE_CODES, validateSlugSegment as validateSharedSlugSegment } from '@zeropress/slug-policy';
+
 export const PREVIEW_DATA_VERSION = '0.5';
 
 const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
 const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
 const PREVIEW_MENU_TARGETS = ['_self', '_blank'];
 const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
-const CONTROL_CHAR_PATTERN = /[\u0000-\u001F\u007F]/;
 
 export function validatePreviewData(data) {
   const errors = [];
@@ -338,28 +339,31 @@ function validateSlugArray(value, path, code, errors) {
 }
 
 function validateSlugSegment(value, path, code, errors) {
-  if (typeof value !== 'string' || value.trim() === '') {
-    errors.push(issue(code, path, 'Slug must be a non-empty string'));
+  const result = validateSharedSlugSegment(value);
+  if (result.ok) {
     return;
   }
 
-  if (value.trim() !== value) {
-    errors.push(issue(code, path, 'Slug must not contain leading or trailing whitespace'));
-    return;
-  }
+  const firstIssue = result.issues[0];
+  const message = mapSlugValidationMessage(firstIssue?.code);
+  errors.push(issue(code, path, message));
+}
 
-  if (value === '.' || value === '..') {
-    errors.push(issue(code, path, 'Slug must not be "." or ".."'));
-    return;
-  }
-
-  if (value.includes('/') || value.includes('\\')) {
-    errors.push(issue(code, path, 'Slug must be a single safe path segment'));
-    return;
-  }
-
-  if (value.includes('%') || CONTROL_CHAR_PATTERN.test(value)) {
-    errors.push(issue(code, path, 'Slug must not contain percent-encoding or control characters'));
+function mapSlugValidationMessage(issueCode) {
+  switch (issueCode) {
+    case SLUG_SEGMENT_ISSUE_CODES.INVALID_TYPE:
+    case SLUG_SEGMENT_ISSUE_CODES.EMPTY:
+      return 'Slug must be a non-empty string';
+    case SLUG_SEGMENT_ISSUE_CODES.WHITESPACE:
+      return 'Slug must not contain whitespace';
+    case SLUG_SEGMENT_ISSUE_CODES.RESERVED_DOT_SEGMENT:
+      return 'Slug must not be "." or ".."';
+    case SLUG_SEGMENT_ISSUE_CODES.PATH_SEPARATOR:
+      return 'Slug must be a single safe path segment';
+    case SLUG_SEGMENT_ISSUE_CODES.PERCENT_ENCODING_OR_CONTROL:
+      return 'Slug must not contain percent-encoding or control characters';
+    default:
+      return 'Slug must be a single safe path segment';
   }
 }
 
