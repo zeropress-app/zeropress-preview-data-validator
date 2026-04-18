@@ -56,6 +56,11 @@ Published schema files are shipped from the package `schemas/` directory.
 - menu items use `title`, `url`, `type`, `target`, and recursive `children`
 - menu item `target` is `_self` or `_blank`
 - menu items do not carry admin-only fields such as `reference_id`
+- enabled widget areas are exported in root `widgets`
+- `widgets` is keyed by stable `widget_area_id`
+- widget items intentionally fix only the common shell: `type`, `title`, and optional `settings`
+- widget-type-specific `settings` structure is not enforced by this validator in v0.5
+- optional `custom_css` carries site-level stylesheet input as `{ content }`
 
 Build tooling is responsible for resolving authors and deriving render-ready route data, including HTML conversion for non-HTML source content.
 

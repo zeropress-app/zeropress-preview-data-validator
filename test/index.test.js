@@ -92,6 +92,21 @@ function createValidPreviewData() {
         ],
       },
     },
+    widgets: {
+      sidebar: {
+        name: 'Sidebar Widgets',
+        items: [
+          {
+            type: 'profile',
+            title: 'About this blog',
+            settings: {
+              display_name: 'Admin',
+              bio_short: 'Preview profile',
+            },
+          },
+        ],
+      },
+    },
   };
 }
 
@@ -212,6 +227,15 @@ test('validatePreviewData rejects missing menus', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'menus'), true);
 });
 
+test('validatePreviewData rejects missing widgets', () => {
+  const data = createValidPreviewData();
+  delete data.widgets;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'widgets'), true);
+});
+
 test('validatePreviewData accepts nested menus of arbitrary depth', () => {
   const data = createValidPreviewData();
   data.menus.docs_sidebar = {
@@ -258,6 +282,63 @@ test('validatePreviewData rejects invalid menu item target and legacy menu field
   assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].target'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].label'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'menus.primary.items[0].open_in_new_tab'), true);
+});
+
+test('validatePreviewData accepts widgets with arbitrary item types and free-form settings', () => {
+  const data = createValidPreviewData();
+  data.widgets.sidebar.items.push({
+    type: 'experimental-widget',
+    title: 'Experimental',
+    settings: {
+      some_flag: true,
+      nested: {
+        value: 1,
+      },
+    },
+  });
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid widget item shells', () => {
+  const data = createValidPreviewData();
+  data.widgets.sidebar.items[0] = {
+    type: '',
+    title: '',
+    settings: [],
+    id: 'admin-only-id',
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'widgets.sidebar.items[0].type'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'widgets.sidebar.items[0].title'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'widgets.sidebar.items[0].settings'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'widgets.sidebar.items[0].id'), true);
+});
+
+test('validatePreviewData accepts optional custom_css', () => {
+  const data = createValidPreviewData();
+  data.custom_css = {
+    content: 'body { color: red; }',
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid custom_css payloads', () => {
+  const data = createValidPreviewData();
+  data.custom_css = {
+    content: '',
+    enabled: true,
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'custom_css.content'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'custom_css.enabled'), true);
 });
 
 test('validatePreviewData rejects invalid menu_id keys', () => {

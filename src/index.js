@@ -6,11 +6,12 @@ const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
 const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
 const PREVIEW_MENU_TARGETS = ['_self', '_blank'];
 const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
+const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'menus']);
+  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css']);
 
   if (isObject(data)) {
     validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
@@ -20,6 +21,10 @@ export function validatePreviewData(data) {
     validateSite(data.site, 'site', errors);
     validateContent(data.content, 'content', errors);
     validateMenus(data.menus, 'menus', errors);
+    validateWidgets(data.widgets, 'widgets', errors);
+    if (data.custom_css !== undefined) {
+      validateCustomCss(data.custom_css, 'custom_css', errors);
+    }
   }
 
   return {
@@ -138,6 +143,56 @@ function validatePreviewMenuItem(item, path, errors) {
   });
 
   rejectLegacyKeys(item, path, errors, ['label', 'open_in_new_tab', 'reference_id', 'reference_exists', 'id'], 'INVALID_LEGACY_MENU_FIELD');
+}
+
+function validateWidgets(widgets, path, errors) {
+  validateObject(widgets, path, 'INVALID_WIDGETS', errors);
+  if (!isObject(widgets)) {
+    return;
+  }
+
+  for (const [widgetAreaId, widgetArea] of Object.entries(widgets)) {
+    if (!PREVIEW_WIDGET_AREA_ID_PATTERN.test(widgetAreaId)) {
+      errors.push(issue('INVALID_WIDGET_AREA_ID', `${path}.${widgetAreaId}`, 'Widget area ids must match ^[a-z][a-z0-9_-]{0,63}$'));
+    }
+
+    validatePreviewWidgetArea(widgetArea, `${path}.${widgetAreaId}`, errors);
+  }
+}
+
+function validatePreviewWidgetArea(widgetArea, path, errors) {
+  validateClosedObject(widgetArea, path, errors, ['name', 'items']);
+  if (!isObject(widgetArea)) {
+    return;
+  }
+
+  validateNonEmptyString(widgetArea.name, `${path}.name`, 'INVALID_WIDGET_AREA_NAME', errors);
+  validateArray(widgetArea.items, `${path}.items`, 'INVALID_WIDGET_AREA_ITEMS', errors, (entry, index) => {
+    validatePreviewWidgetItem(entry, `${path}.items[${index}]`, errors);
+  });
+}
+
+function validatePreviewWidgetItem(item, path, errors) {
+  validateClosedObject(item, path, errors, ['type', 'title', 'settings']);
+  if (!isObject(item)) {
+    return;
+  }
+
+  validateNonEmptyString(item.type, `${path}.type`, 'INVALID_WIDGET_ITEM_TYPE', errors);
+  validateNonEmptyString(item.title, `${path}.title`, 'INVALID_WIDGET_ITEM_TITLE', errors);
+
+  if (item.settings !== undefined) {
+    validateObject(item.settings, `${path}.settings`, 'INVALID_WIDGET_ITEM_SETTINGS', errors);
+  }
+}
+
+function validateCustomCss(customCss, path, errors) {
+  validateClosedObject(customCss, path, errors, ['content']);
+  if (!isObject(customCss)) {
+    return;
+  }
+
+  validateNonEmptyString(customCss.content, `${path}.content`, 'INVALID_CUSTOM_CSS_CONTENT', errors);
 }
 
 function validateAuthorArray(value, path, errors) {
@@ -295,8 +350,14 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 }
 
 function isOptionalKey(path, key) {
+  if (path === '') {
+    return key === 'custom_css';
+  }
   if (path.startsWith('content.authors[')) {
     return key === 'avatar';
+  }
+  if (path.startsWith('widgets.') && path.includes('.items[')) {
+    return key === 'settings';
   }
   if (path.startsWith('content.posts[')) {
     return key === 'featured_image';

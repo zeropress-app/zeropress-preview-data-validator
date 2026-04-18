@@ -84,6 +84,21 @@ export interface PreviewMenuData {
   items: PreviewMenuItemData[];
 }
 
+export interface PreviewWidgetItemData {
+  type: string;
+  title: string;
+  settings?: Record<string, unknown>;
+}
+
+export interface PreviewWidgetAreaData {
+  name: string;
+  items: PreviewWidgetItemData[];
+}
+
+export interface PreviewCustomCssData {
+  content: string;
+}
+
 export interface PreviewContentData {
   authors: PreviewAuthorData[];
   posts: PreviewPostData[];
@@ -99,6 +114,8 @@ export interface PreviewDataV05 {
   site: PreviewSiteData;
   content: PreviewContentData;
   menus: Record<string, PreviewMenuData>;
+  widgets: Record<string, PreviewWidgetAreaData>;
+  custom_css?: PreviewCustomCssData;
 }
 
 export interface PreviewDataValidationResult {

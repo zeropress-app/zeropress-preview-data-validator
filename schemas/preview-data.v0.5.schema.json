@@ -2,11 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://zeropress.dev/schemas/preview-data.v0.5.schema.json",
   "title": "ZeroPress Theme Preview Data v0.5",
-  "description": "ZeroPress theme preview payload. v0.5 is data-only and includes enabled menus keyed by menu_id.",
-  "markdownDescription": "ZeroPress theme preview payload. `v0.5` is data-only and includes enabled menus keyed by `menu_id`.",
+  "description": "ZeroPress theme preview payload. v0.5 is data-only and includes enabled menus keyed by menu_id plus enabled widget areas keyed by widget_area_id.",
+  "markdownDescription": "ZeroPress theme preview payload. `v0.5` is data-only and includes enabled menus keyed by `menu_id` plus enabled widget areas keyed by `widget_area_id`.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "generator", "generated_at", "site", "content", "menus"],
+  "required": ["version", "generator", "generated_at", "site", "content", "menus", "widgets"],
   "properties": {
     "version": {
       "const": "0.5",
@@ -33,6 +33,12 @@
     },
     "menus": {
       "$ref": "#/$defs/menus"
+    },
+    "widgets": {
+      "$ref": "#/$defs/widgets"
+    },
+    "custom_css": {
+      "$ref": "#/$defs/customCss"
     }
   },
   "$defs": {
@@ -332,6 +338,86 @@
           },
           "description": "Resolved menu tree after omission of missing references.",
           "markdownDescription": "Resolved menu tree after omission of missing references."
+        }
+      }
+    },
+    "widgetItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title"],
+      "description": "Theme-facing widget item shell. Widget-type-specific settings are intentionally left open in v0.5.",
+      "markdownDescription": "Theme-facing widget item shell. Widget-type-specific `settings` are intentionally left open in `v0.5`.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable widget item type identifier.",
+          "markdownDescription": "Stable widget item type identifier."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display title shown by the theme.",
+          "markdownDescription": "Display title shown by the theme."
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Widget-type-specific settings payload. This object is intentionally schema-light in v0.5.",
+          "markdownDescription": "Widget-type-specific settings payload. This object is intentionally schema-light in `v0.5`."
+        }
+      }
+    },
+    "widgetArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "items"],
+      "description": "A named enabled widget area exported to themes under its widget_area_id key.",
+      "markdownDescription": "A named enabled widget area exported to themes under its `widget_area_id` key.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable widget area name for development and diagnostics.",
+          "markdownDescription": "Human-readable widget area name for development and diagnostics."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/widgetItem"
+          },
+          "description": "Resolved widget item list after omission of disabled or missing-reference items.",
+          "markdownDescription": "Resolved widget item list after omission of disabled or missing-reference items."
+        }
+      }
+    },
+    "widgets": {
+      "type": "object",
+      "default": {},
+      "description": "Enabled widget areas keyed by widget_area_id. Disabled widget areas are omitted.",
+      "markdownDescription": "Enabled widget areas keyed by `widget_area_id`. Disabled widget areas are omitted.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable external widget area identifier.",
+        "markdownDescription": "Stable external `widget_area_id` identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/widgetArea"
+      }
+    },
+    "customCss": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content"],
+      "description": "Optional site-level custom stylesheet input.",
+      "markdownDescription": "Optional site-level custom stylesheet input.",
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Raw CSS source to be consumed by build tooling.",
+          "markdownDescription": "Raw CSS source to be consumed by build tooling."
         }
       }
     },
