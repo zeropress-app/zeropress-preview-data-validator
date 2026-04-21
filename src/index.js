@@ -252,7 +252,6 @@ function validatePreviewPost(post, path, errors, authorIds) {
     return;
   }
 
-  validateNonEmptyString(post.id, `${path}.id`, 'INVALID_POST_ID', errors);
   validateInteger(post.public_id, `${path}.public_id`, 'INVALID_POST_PUBLIC_ID', errors, { minimum: 1 });
   validateNonEmptyString(post.title, `${path}.title`, 'INVALID_POST_TITLE', errors);
   validateSlugSegment(post.slug, `${path}.slug`, 'INVALID_POST_SLUG', errors);
@@ -360,7 +359,7 @@ function isOptionalKey(path, key) {
     return key === 'settings';
   }
   if (path.startsWith('content.posts[')) {
-    return key === 'featured_image';
+    return key === 'id' || key === 'featured_image';
   }
   if (path.startsWith('content.pages[')) {
     return key === 'excerpt' || key === 'featured_image';

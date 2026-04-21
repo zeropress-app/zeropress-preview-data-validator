@@ -36,7 +36,6 @@ function createValidPreviewData() {
       ],
       posts: [
         {
-          id: 'post-1',
           public_id: 101,
           title: 'Hello ZeroPress',
           slug: 'hello-zeropress',
@@ -118,6 +117,13 @@ test('validatePreviewData accepts a valid v0.5 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData accepts posts without internal id', () => {
+  const data = createValidPreviewData();
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].id'), false);
 });
 
 test('validatePreviewData accepts valid Unicode and Hangul slug segments', () => {

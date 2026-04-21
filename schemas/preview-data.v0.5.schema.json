@@ -133,7 +133,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "id",
         "public_id",
         "title",
         "slug",

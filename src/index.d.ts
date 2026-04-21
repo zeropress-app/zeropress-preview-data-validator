@@ -29,7 +29,6 @@ export interface PreviewAuthorData {
 }
 
 export interface PreviewPostData {
-  id: string;
   public_id: number;
   title: string;
   slug: string;
