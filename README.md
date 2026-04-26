@@ -46,6 +46,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - authors are deduplicated in `content.authors[]`
 - posts reference authors via `author_id`
 - body source is carried as raw `content` with explicit `document_type`
+- posts and pages may carry optional generator-defined scalar metadata in `meta`
 - pages, categories, and tags do not carry internal `id` fields
 - `site.mediaBaseUrl` is required and must be either an empty string or an absolute URI
 - site locale is carried as `site.locale`

@@ -49,6 +49,14 @@
       "markdownDescription": "A single safe URL path segment. Unicode is allowed, but path separators, percent-encoding, control characters, whitespace-only values, and reserved dot segments are not.",
       "pattern": "^(?!\\.{1,2}$)(?!.*[%/\\\\\\s\\u0000-\\u001F\\u007F]).+$"
     },
+    "previewMeta": {
+      "type": "object",
+      "description": "Generator-defined optional metadata for site/theme conventions. ZeroPress core does not interpret metadata keys.",
+      "markdownDescription": "Generator-defined optional metadata for site/theme conventions. ZeroPress core does not interpret metadata keys.",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    },
     "site": {
       "type": "object",
       "required": [
@@ -189,6 +197,9 @@
           "type": "string",
           "minLength": 1
         },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
+        },
         "status": {
           "type": "string",
           "enum": ["published", "draft"]
@@ -235,6 +246,9 @@
         "featured_image": {
           "type": "string",
           "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
         },
         "status": {
           "type": "string",

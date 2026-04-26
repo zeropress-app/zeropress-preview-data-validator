@@ -1,5 +1,6 @@
 export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
+export type PreviewMetaValue = string | number | boolean | null;
 
 export interface ValidationIssue {
   code: string;
@@ -39,6 +40,7 @@ export interface PreviewPostData {
   updated_at_iso: string;
   author_id: string;
   featured_image?: string;
+  meta?: Record<string, PreviewMetaValue>;
   status: PreviewStatus;
   allow_comments: boolean;
   category_slugs: string[];
@@ -52,6 +54,7 @@ export interface PreviewPageData {
   document_type: PreviewDocumentType;
   excerpt?: string;
   featured_image?: string;
+  meta?: Record<string, PreviewMetaValue>;
   status: PreviewStatus;
 }
 

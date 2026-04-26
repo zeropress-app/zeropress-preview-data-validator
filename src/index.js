@@ -243,6 +243,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
     'updated_at_iso',
     'author_id',
     'featured_image',
+    'meta',
     'status',
     'allow_comments',
     'category_slugs',
@@ -269,6 +270,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
   if (post.featured_image !== undefined) {
     validateUrlLike(post.featured_image, `${path}.featured_image`, 'INVALID_POST_FEATURED_IMAGE', errors);
   }
+  validatePreviewMeta(post.meta, `${path}.meta`, errors);
 
   if (typeof post.author_id === 'string' && post.author_id.trim() !== '' && !authorIds.has(post.author_id)) {
     errors.push(issue('INVALID_POST_AUTHOR_REFERENCE', `${path}.author_id`, 'Referenced author_id does not exist'));
@@ -276,7 +278,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['title', 'slug', 'content', 'document_type', 'excerpt', 'featured_image', 'status']);
+  validateClosedObject(page, path, errors, ['title', 'slug', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'status']);
   if (!isObject(page)) {
     return;
   }
@@ -291,7 +293,25 @@ function validatePreviewPage(page, path, errors) {
   if (page.featured_image !== undefined) {
     validateUrlLike(page.featured_image, `${path}.featured_image`, 'INVALID_PAGE_FEATURED_IMAGE', errors);
   }
+  validatePreviewMeta(page.meta, `${path}.meta`, errors);
   validateEnum(page.status, `${path}.status`, 'INVALID_PAGE_STATUS', errors, ['published', 'draft']);
+}
+
+function validatePreviewMeta(meta, path, errors) {
+  if (meta === undefined) {
+    return;
+  }
+  if (!isObject(meta)) {
+    errors.push(issue('INVALID_META', path, 'meta must be an object'));
+    return;
+  }
+
+  for (const [key, value] of Object.entries(meta)) {
+    if (value === null || typeof value === 'string' || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) {
+      continue;
+    }
+    errors.push(issue('INVALID_META_VALUE', `${path}.${key}`, 'meta values must be strings, numbers, booleans, or null'));
+  }
 }
 
 function validatePreviewCategory(category, path, errors) {
@@ -359,10 +379,10 @@ function isOptionalKey(path, key) {
     return key === 'settings';
   }
   if (path.startsWith('content.posts[')) {
-    return key === 'id' || key === 'featured_image';
+    return key === 'id' || key === 'featured_image' || key === 'meta';
   }
   if (path.startsWith('content.pages[')) {
-    return key === 'excerpt' || key === 'featured_image';
+    return key === 'excerpt' || key === 'featured_image' || key === 'meta';
   }
   if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
     return key === 'description';

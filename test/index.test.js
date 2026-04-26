@@ -119,6 +119,56 @@ test('validatePreviewData accepts a valid v0.5 payload', () => {
   assert.equal(result.errors.length, 0);
 });
 
+test('validatePreviewData accepts optional scalar meta on posts and pages', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].meta = {
+    label: 'Featured',
+    score: 4.5,
+    featured: true,
+    note: null,
+  };
+  data.content.pages[0].meta = {
+    section: 'docs',
+    order: 2,
+    hidden: false,
+    note: null,
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData rejects non-object post and page meta', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].meta = 'featured';
+  data.content.pages[0].meta = ['docs'];
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].meta'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].meta'), true);
+});
+
+test('validatePreviewData rejects nested post and page meta values', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].meta = {
+    nested: { label: 'Featured' },
+    list: ['featured'],
+  };
+  data.content.pages[0].meta = {
+    nested: { section: 'docs' },
+    list: ['docs'],
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].meta.nested'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].meta.list'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].meta.nested'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].meta.list'), true);
+});
+
 test('validatePreviewData accepts posts without internal id', () => {
   const data = createValidPreviewData();
   const result = validatePreviewData(data);
