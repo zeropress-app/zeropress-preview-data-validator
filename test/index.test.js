@@ -190,6 +190,69 @@ test('validatePreviewData rejects nested post and page meta values', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].meta.list'), true);
 });
 
+test('validatePreviewData accepts optional permalinks and page path', () => {
+  const data = createValidPreviewData();
+  data.site.permalinks = {
+    output_style: 'html-extension',
+    posts: '/posts/:public_id',
+    pages: '/:slug/',
+    categories: '/categories/:slug/',
+    tags: '/tags/:slug/',
+  };
+  data.content.pages[0].path = 'spec/preview-data-v0.5';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData rejects invalid permalink settings', () => {
+  const cases = [
+    ['output_style', 'flat', 'site.permalinks.output_style', 'INVALID_PERMALINK_OUTPUT_STYLE'],
+    ['posts', '/posts/:missing/', 'site.permalinks.posts', 'INVALID_PERMALINK_TOKEN'],
+    ['posts', '/posts/post-:slug/', 'site.permalinks.posts', 'INVALID_PERMALINK_TOKEN'],
+    ['posts', '/posts/:year/', 'site.permalinks.posts', 'INVALID_PERMALINK_PATTERN'],
+    ['posts', '/posts/:slug.html', 'site.permalinks.posts', 'INVALID_PERMALINK_PATTERN'],
+    ['pages', '/docs/:public_id/', 'site.permalinks.pages', 'INVALID_PERMALINK_TOKEN'],
+    ['categories', '/categories/../:slug/', 'site.permalinks.categories', 'INVALID_PERMALINK_PATTERN'],
+  ];
+
+  for (const [fieldName, value, issuePath, issueCode] of cases) {
+    const data = createValidPreviewData();
+    data.site.permalinks = {
+      output_style: 'directory',
+      posts: '/posts/:slug/',
+      pages: '/:slug/',
+      categories: '/categories/:slug/',
+      tags: '/tags/:slug/',
+      [fieldName]: value,
+    };
+
+    const result = validatePreviewData(data);
+    const issue = getIssueAtPath(result, issuePath);
+
+    assert.equal(result.ok, false, `Expected ${fieldName}=${value} to be rejected`);
+    assert.ok(issue, `Expected an issue at ${issuePath}`);
+    assert.equal(issue.code, issueCode);
+  }
+});
+
+test('validatePreviewData rejects invalid page path values', () => {
+  const cases = ['/docs', 'docs/', 'docs//intro', 'docs/../intro', 'docs/hello world', 'docs/page.html'];
+
+  for (const pagePath of cases) {
+    const data = createValidPreviewData();
+    data.content.pages[0].path = pagePath;
+
+    const result = validatePreviewData(data);
+    const issue = getIssueAtPath(result, 'content.pages[0].path');
+
+    assert.equal(result.ok, false, `Expected ${pagePath} to be rejected`);
+    assert.ok(issue, `Expected an issue for ${pagePath}`);
+    assert.equal(issue.code, 'INVALID_PAGE_PATH');
+  }
+});
+
 test('validatePreviewData accepts posts without internal id', () => {
   const data = createValidPreviewData();
   const result = validatePreviewData(data);
@@ -293,6 +356,22 @@ test('validatePreviewData rejects missing public_id', () => {
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].public_id'), true);
+});
+
+test('validatePreviewData rejects duplicate post public_id values', () => {
+  const data = createValidPreviewData();
+  data.content.posts.push({
+    ...data.content.posts[0],
+    title: 'Duplicate Public ID',
+    slug: 'duplicate-public-id',
+  });
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.posts[1].public_id');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'DUPLICATE_POST_PUBLIC_ID');
 });
 
 test('validatePreviewData rejects missing menus', () => {

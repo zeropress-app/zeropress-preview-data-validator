@@ -1,6 +1,15 @@
 export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
 export type PreviewMetaValue = string | number | boolean | null;
+export type PreviewPermalinkOutputStyle = 'directory' | 'html-extension';
+
+export interface PreviewPermalinksData {
+  output_style?: PreviewPermalinkOutputStyle;
+  posts?: string;
+  pages?: string;
+  categories?: string;
+  tags?: string;
+}
 
 export interface ValidationIssue {
   code: string;
@@ -20,6 +29,7 @@ export interface PreviewSiteData {
   timeFormat: string;
   timezone: string;
   disallowComments: boolean;
+  permalinks?: PreviewPermalinksData;
   [key: string]: unknown;
 }
 
@@ -33,6 +43,7 @@ export interface PreviewPostData {
   public_id: number;
   title: string;
   slug: string;
+  path?: string;
   content: string;
   document_type: PreviewDocumentType;
   excerpt: string;

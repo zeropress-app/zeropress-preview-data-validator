@@ -62,6 +62,43 @@
         "type": ["string", "number", "boolean", "null"]
       }
     },
+    "permalinks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site permalink policy used by build tooling to derive public URLs and output paths.",
+      "markdownDescription": "Optional site permalink policy used by build tooling to derive public URLs and output paths.",
+      "properties": {
+        "output_style": {
+          "type": "string",
+          "enum": ["directory", "html-extension"]
+        },
+        "posts": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "pages": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "categories": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "tags": {
+          "$ref": "#/$defs/permalinkPattern"
+        }
+      }
+    },
+    "permalinkPattern": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute URL path pattern using full-segment tokens such as :slug or :public_id. Literal .html suffixes are not part of v0.5.",
+      "markdownDescription": "Absolute URL path pattern using full-segment tokens such as `:slug` or `:public_id`. Literal `.html` suffixes are not part of `v0.5`."
+    },
+    "pagePath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional relative page route path. No leading or trailing slash; each segment follows the slug segment policy.",
+      "markdownDescription": "Optional relative page route path. No leading or trailing slash; each segment follows the slug segment policy.",
+      "pattern": "^(?!/)(?!.*//)(?!.*[%\\\\\\s\\u0000-\\u001F\\u007F]).*[^/]$"
+    },
     "site": {
       "type": "object",
       "required": [
@@ -119,6 +156,9 @@
         },
         "disallowComments": {
           "type": "boolean"
+        },
+        "permalinks": {
+          "$ref": "#/$defs/permalinks"
         }
       },
       "additionalProperties": true
@@ -237,6 +277,9 @@
         },
         "slug": {
           "$ref": "#/$defs/slugSegment"
+        },
+        "path": {
+          "$ref": "#/$defs/pagePath"
         },
         "content": {
           "type": "string"

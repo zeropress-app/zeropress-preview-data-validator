@@ -46,8 +46,11 @@ Published schema files are shipped from the package `schemas/` directory.
 - per-post comment policy is expressed as `allow_comments`
 - authors are deduplicated in `content.authors[]`
 - posts reference authors via `author_id`
+- post `public_id` values are positive unique integers
 - body source is carried as raw `content` with explicit `document_type`
 - posts and pages may carry optional generator-defined scalar metadata in `meta`
+- `site.permalinks` may define URL/output policy for posts, pages, categories, and tags
+- pages may carry optional `path` for nested page URLs
 - pages, categories, and tags do not carry internal `id` fields
 - `site.mediaBaseUrl` is required and must be either an empty string or an absolute URI
 - site locale is carried as `site.locale`
