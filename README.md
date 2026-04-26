@@ -38,6 +38,7 @@ Published schema files are shipped from the package `schemas/` directory.
 
 `preview-data v0.5` is data-only:
 
+- root `$schema` is optional and may be used as an editor/tooling hint
 - no `routes` block
 - no raw `html` fields on posts or pages
 - no preformatted `published_at` / `updated_at`

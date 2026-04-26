@@ -11,9 +11,12 @@ const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css']);
+  validateClosedObject(data, '', errors, ['$schema', 'version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css']);
 
   if (isObject(data)) {
+    if (data.$schema !== undefined) {
+      validateString(data.$schema, '$schema', 'INVALID_SCHEMA_HINT', errors);
+    }
     validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
     validateNonEmptyString(data.generator, 'generator', 'INVALID_GENERATOR', errors);
     validateDateTimeString(data.generated_at, 'generated_at', 'INVALID_GENERATED_AT', errors);
@@ -370,7 +373,7 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 
 function isOptionalKey(path, key) {
   if (path === '') {
-    return key === 'custom_css';
+    return key === '$schema' || key === 'custom_css';
   }
   if (path.startsWith('content.authors[')) {
     return key === 'avatar';

@@ -110,6 +110,7 @@ export interface PreviewContentData {
 }
 
 export interface PreviewDataV05 {
+  $schema?: string;
   version: '0.5';
   generator: string;
   generated_at: string;

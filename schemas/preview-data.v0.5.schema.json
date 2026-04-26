@@ -8,6 +8,11 @@
   "additionalProperties": false,
   "required": ["version", "generator", "generated_at", "site", "content", "menus", "widgets"],
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value.",
+      "markdownDescription": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value."
+    },
     "version": {
       "const": "0.5",
       "description": "Preview-data contract version.",

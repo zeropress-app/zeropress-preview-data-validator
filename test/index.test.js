@@ -119,6 +119,27 @@ test('validatePreviewData accepts a valid v0.5 payload', () => {
   assert.equal(result.errors.length, 0);
 });
 
+test('validatePreviewData accepts optional root $schema editor hint', () => {
+  const data = createValidPreviewData();
+  data.$schema = 'https://zeropress.dev/schemas/preview-data.v0.5.schema.json';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData rejects non-string root $schema editor hint', () => {
+  const data = createValidPreviewData();
+  data.$schema = true;
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, '$schema');
+
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_SCHEMA_HINT');
+});
+
 test('validatePreviewData accepts optional scalar meta on posts and pages', () => {
   const data = createValidPreviewData();
   data.content.posts[0].meta = {
