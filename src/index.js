@@ -19,7 +19,7 @@ const PREVIEW_PERMALINK_TOKENS = Object.freeze({
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['$schema', 'version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css']);
+  validateClosedObject(data, '', errors, ['$schema', 'version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css', 'custom_html']);
 
   if (isObject(data)) {
     if (data.$schema !== undefined) {
@@ -35,6 +35,9 @@ export function validatePreviewData(data) {
     validateWidgets(data.widgets, 'widgets', errors);
     if (data.custom_css !== undefined) {
       validateCustomCss(data.custom_css, 'custom_css', errors);
+    }
+    if (data.custom_html !== undefined) {
+      validateCustomHtml(data.custom_html, 'custom_html', errors);
     }
   }
 
@@ -203,6 +206,34 @@ function validateCustomCss(customCss, path, errors) {
   }
 
   validateNonEmptyString(customCss.content, `${path}.content`, 'INVALID_CUSTOM_CSS_CONTENT', errors);
+}
+
+function validateCustomHtml(customHtml, path, errors) {
+  validateClosedObject(customHtml, path, errors, ['head_end', 'body_end']);
+  if (!isObject(customHtml)) {
+    return;
+  }
+
+  if (customHtml.head_end === undefined && customHtml.body_end === undefined) {
+    errors.push(issue('INVALID_CUSTOM_HTML', path, 'custom_html must include head_end or body_end'));
+  }
+
+  if (customHtml.head_end !== undefined) {
+    validateCustomHtmlSlot(customHtml.head_end, `${path}.head_end`, errors);
+  }
+  if (customHtml.body_end !== undefined) {
+    validateCustomHtmlSlot(customHtml.body_end, `${path}.body_end`, errors);
+  }
+}
+
+function validateCustomHtmlSlot(slot, path, errors) {
+  validateClosedObject(slot, path, errors, ['content']);
+  if (!isObject(slot)) {
+    errors.push(issue('INVALID_CUSTOM_HTML_SLOT', path, 'Expected an object'));
+    return;
+  }
+
+  validateNonEmptyString(slot.content, `${path}.content`, 'INVALID_CUSTOM_HTML_CONTENT', errors);
 }
 
 function validateAuthorArray(value, path, errors) {
@@ -517,7 +548,10 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 
 function isOptionalKey(path, key) {
   if (path === '') {
-    return key === '$schema' || key === 'custom_css';
+    return key === '$schema' || key === 'custom_css' || key === 'custom_html';
+  }
+  if (path === 'custom_html') {
+    return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
     return key === 'permalinks';

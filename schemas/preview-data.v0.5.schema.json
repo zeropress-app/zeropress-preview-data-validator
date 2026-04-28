@@ -44,6 +44,9 @@
     },
     "custom_css": {
       "$ref": "#/$defs/customCss"
+    },
+    "custom_html": {
+      "$ref": "#/$defs/customHtml"
     }
   },
   "$defs": {
@@ -479,6 +482,37 @@
           "minLength": 1,
           "description": "Raw CSS source to be consumed by build tooling.",
           "markdownDescription": "Raw CSS source to be consumed by build tooling."
+        }
+      }
+    },
+    "customHtml": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["head_end"] },
+        { "required": ["body_end"] }
+      ],
+      "description": "Optional trusted site-level HTML injection slots.",
+      "markdownDescription": "Optional trusted site-level HTML injection slots. ZeroPress does not sanitize or interpret the HTML content.",
+      "properties": {
+        "head_end": {
+          "$ref": "#/$defs/customHtmlSlot"
+        },
+        "body_end": {
+          "$ref": "#/$defs/customHtmlSlot"
+        }
+      }
+    },
+    "customHtmlSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content"],
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trusted raw HTML inserted into the target slot by build tooling.",
+          "markdownDescription": "Trusted raw HTML inserted into the target slot by build tooling."
         }
       }
     },

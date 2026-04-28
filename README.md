@@ -66,6 +66,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - widget items intentionally fix only the common shell: `type`, `title`, and optional `settings`
 - widget-type-specific `settings` structure is not enforced by this validator in v0.5
 - optional `custom_css` carries site-level stylesheet input as `{ content }`
+- optional `custom_html` carries trusted site-level HTML injection slots as `{ head_end: { content }, body_end: { content } }`
 
 Build tooling is responsible for resolving authors and deriving render-ready route data, including HTML conversion for non-HTML source content.
 

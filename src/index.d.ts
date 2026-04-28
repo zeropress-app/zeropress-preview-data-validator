@@ -112,6 +112,15 @@ export interface PreviewCustomCssData {
   content: string;
 }
 
+export interface PreviewCustomHtmlSlotData {
+  content: string;
+}
+
+export interface PreviewCustomHtmlData {
+  head_end?: PreviewCustomHtmlSlotData;
+  body_end?: PreviewCustomHtmlSlotData;
+}
+
 export interface PreviewContentData {
   authors: PreviewAuthorData[];
   posts: PreviewPostData[];
@@ -130,6 +139,7 @@ export interface PreviewDataV05 {
   menus: Record<string, PreviewMenuData>;
   widgets: Record<string, PreviewWidgetAreaData>;
   custom_css?: PreviewCustomCssData;
+  custom_html?: PreviewCustomHtmlData;
 }
 
 export interface PreviewDataValidationResult {

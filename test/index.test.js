@@ -497,6 +497,68 @@ test('validatePreviewData rejects invalid custom_css payloads', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'custom_css.enabled'), true);
 });
 
+test('validatePreviewData accepts optional custom_html slots', () => {
+  const headOnly = createValidPreviewData();
+  headOnly.custom_html = {
+    head_end: {
+      content: '<meta name="site-verification" content="ok">\n<script async src="https://example.com/tracker.js"></script>',
+    },
+  };
+
+  const bodyOnly = createValidPreviewData();
+  bodyOnly.custom_html = {
+    body_end: {
+      content: '<script defer src="/vendor/app.js"></script>',
+    },
+  };
+
+  const bothSlots = createValidPreviewData();
+  bothSlots.custom_html = {
+    head_end: {
+      content: '</head><body data-trusted="yes"><script>window.dataLayer = window.dataLayer || [];</script>',
+    },
+    body_end: {
+      content: '<script>window.__zp_custom = true;</script>',
+    },
+  };
+
+  assert.equal(validatePreviewData(headOnly).ok, true);
+  assert.equal(validatePreviewData(bodyOnly).ok, true);
+  assert.equal(validatePreviewData(bothSlots).ok, true);
+});
+
+test('validatePreviewData rejects invalid custom_html payloads', () => {
+  const emptyCustomHtml = createValidPreviewData();
+  emptyCustomHtml.custom_html = {};
+  const emptyCustomHtmlResult = validatePreviewData(emptyCustomHtml);
+  assert.equal(emptyCustomHtmlResult.ok, false);
+  assert.equal(emptyCustomHtmlResult.errors.some((issue) => issue.path === 'custom_html'), true);
+
+  const invalidSlot = createValidPreviewData();
+  invalidSlot.custom_html = {
+    head_end: '<script></script>',
+  };
+  const invalidSlotResult = validatePreviewData(invalidSlot);
+  assert.equal(invalidSlotResult.ok, false);
+  assert.equal(invalidSlotResult.errors.some((issue) => issue.path === 'custom_html.head_end'), true);
+
+  const invalidContent = createValidPreviewData();
+  invalidContent.custom_html = {
+    head_end: {
+      content: '',
+      enabled: true,
+    },
+    footer_end: {
+      content: '<script></script>',
+    },
+  };
+  const invalidContentResult = validatePreviewData(invalidContent);
+  assert.equal(invalidContentResult.ok, false);
+  assert.equal(invalidContentResult.errors.some((issue) => issue.path === 'custom_html.head_end.content'), true);
+  assert.equal(invalidContentResult.errors.some((issue) => issue.path === 'custom_html.head_end.enabled'), true);
+  assert.equal(invalidContentResult.errors.some((issue) => issue.path === 'custom_html.footer_end'), true);
+});
+
 test('validatePreviewData rejects invalid menu_id keys', () => {
   const data = createValidPreviewData();
   data.menus['Primary Menu'] = {
