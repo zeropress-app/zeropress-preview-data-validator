@@ -206,6 +206,91 @@ test('validatePreviewData accepts optional permalinks and page path', () => {
   assert.equal(result.errors.length, 0);
 });
 
+test('validatePreviewData accepts optional front page and post index settings', () => {
+  const themeIndex = createValidPreviewData();
+  themeIndex.site.front_page = {
+    type: 'theme_index',
+  };
+  themeIndex.site.post_index = {
+    enabled: true,
+    path: '/blog/',
+    paginate: false,
+  };
+
+  const pageFront = createValidPreviewData();
+  pageFront.site.front_page = {
+    type: 'page',
+    page_slug: 'about',
+  };
+
+  const standaloneFront = createValidPreviewData();
+  standaloneFront.site.front_page = {
+    type: 'standalone_html',
+    html: '<!doctype html><html><head><title>Launch</title></head><body>Launch</body></html>',
+  };
+
+  assert.equal(validatePreviewData(themeIndex).ok, true);
+  assert.equal(validatePreviewData(pageFront).ok, true);
+  assert.equal(validatePreviewData(standaloneFront).ok, true);
+});
+
+test('validatePreviewData rejects invalid front page settings', () => {
+  const invalidType = createValidPreviewData();
+  invalidType.site.front_page = {
+    type: 'home',
+  };
+
+  const missingPageSlug = createValidPreviewData();
+  missingPageSlug.site.front_page = {
+    type: 'page',
+  };
+
+  const missingHtml = createValidPreviewData();
+  missingHtml.site.front_page = {
+    type: 'standalone_html',
+  };
+
+  const emptyHtml = createValidPreviewData();
+  emptyHtml.site.front_page = {
+    type: 'standalone_html',
+    html: '',
+  };
+
+  assert.equal(getIssueAtPath(validatePreviewData(invalidType), 'site.front_page.type')?.code, 'INVALID_FRONT_PAGE_TYPE');
+  assert.equal(getIssueAtPath(validatePreviewData(missingPageSlug), 'site.front_page.page_slug')?.code, 'INVALID_FRONT_PAGE_PAGE_SLUG');
+  assert.equal(getIssueAtPath(validatePreviewData(missingHtml), 'site.front_page.html')?.code, 'INVALID_FRONT_PAGE_HTML');
+  assert.equal(getIssueAtPath(validatePreviewData(emptyHtml), 'site.front_page.html')?.code, 'INVALID_FRONT_PAGE_HTML');
+});
+
+test('validatePreviewData rejects invalid post index settings', () => {
+  const cases = [
+    ['enabled', 'yes', 'site.post_index.enabled', 'INVALID_POST_INDEX_ENABLED'],
+    ['paginate', 'no', 'site.post_index.paginate', 'INVALID_POST_INDEX_PAGINATE'],
+    ['path', 'blog/', 'site.post_index.path', 'INVALID_POST_INDEX_PATH'],
+    ['path', '/blog.html', 'site.post_index.path', 'INVALID_POST_INDEX_PATH'],
+    ['path', '/blog?draft=true', 'site.post_index.path', 'INVALID_POST_INDEX_PATH'],
+    ['path', '/blog/../posts/', 'site.post_index.path', 'INVALID_POST_INDEX_PATH'],
+    ['path', '/blog//posts/', 'site.post_index.path', 'INVALID_POST_INDEX_PATH'],
+  ];
+
+  for (const [fieldName, value, issuePath, issueCode] of cases) {
+    const data = createValidPreviewData();
+    data.site.post_index = {
+      enabled: true,
+      path: '/blog/',
+      paginate: true,
+      [fieldName]: value,
+    };
+
+    const result = validatePreviewData(data);
+    const issue = getIssueAtPath(result, issuePath);
+
+    assert.equal(result.ok, false, `Expected ${fieldName}=${value} to be rejected`);
+    assert.ok(issue, `Expected an issue at ${issuePath}`);
+    assert.equal(issue.code, issueCode);
+  }
+});
+
 test('validatePreviewData rejects invalid permalink settings', () => {
   const cases = [
     ['output_style', 'flat', 'site.permalinks.output_style', 'INVALID_PERMALINK_OUTPUT_STYLE'],

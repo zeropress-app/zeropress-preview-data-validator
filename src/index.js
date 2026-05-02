@@ -9,6 +9,7 @@ const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
+const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
 const PREVIEW_PERMALINK_TOKENS = Object.freeze({
   posts: new Set(['slug', 'public_id', 'year', 'month', 'day']),
   pages: new Set(['slug']),
@@ -78,6 +79,8 @@ function validateSite(site, path, errors) {
   validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
   validateBoolean(site.disallowComments, `${path}.disallowComments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
   validatePermalinks(site.permalinks, `${path}.permalinks`, errors);
+  validateFrontPage(site.front_page, `${path}.front_page`, errors);
+  validatePostIndex(site.post_index, `${path}.post_index`, errors);
 
   rejectLegacyKeys(site, path, errors, [
     'site_name',
@@ -393,6 +396,88 @@ function validatePermalinks(permalinks, path, errors) {
   }
 }
 
+function validateFrontPage(frontPage, path, errors) {
+  if (frontPage === undefined) {
+    return;
+  }
+  validateClosedObject(frontPage, path, errors, ['type', 'page_slug', 'html']);
+  if (!isObject(frontPage)) {
+    return;
+  }
+
+  validateEnum(frontPage.type, `${path}.type`, 'INVALID_FRONT_PAGE_TYPE', errors, PREVIEW_FRONT_PAGE_TYPES);
+
+  if (frontPage.type === 'page') {
+    validateSlugSegment(frontPage.page_slug, `${path}.page_slug`, 'INVALID_FRONT_PAGE_PAGE_SLUG', errors);
+  } else if (frontPage.page_slug !== undefined) {
+    validateSlugSegment(frontPage.page_slug, `${path}.page_slug`, 'INVALID_FRONT_PAGE_PAGE_SLUG', errors);
+  }
+
+  if (frontPage.type === 'standalone_html') {
+    validateNonEmptyString(frontPage.html, `${path}.html`, 'INVALID_FRONT_PAGE_HTML', errors);
+  } else if (frontPage.html !== undefined) {
+    validateString(frontPage.html, `${path}.html`, 'INVALID_FRONT_PAGE_HTML', errors);
+  }
+}
+
+function validatePostIndex(postIndex, path, errors) {
+  if (postIndex === undefined) {
+    return;
+  }
+  validateClosedObject(postIndex, path, errors, ['enabled', 'path', 'paginate']);
+  if (!isObject(postIndex)) {
+    return;
+  }
+
+  if (postIndex.enabled !== undefined) {
+    validateBoolean(postIndex.enabled, `${path}.enabled`, 'INVALID_POST_INDEX_ENABLED', errors);
+  }
+  validatePostIndexPath(postIndex.path, `${path}.path`, errors);
+  if (postIndex.paginate !== undefined) {
+    validateBoolean(postIndex.paginate, `${path}.paginate`, 'INVALID_POST_INDEX_PAGINATE', errors);
+  }
+}
+
+function validatePostIndexPath(routePath, path, errors) {
+  if (routePath === undefined) {
+    return;
+  }
+  if (typeof routePath !== 'string' || routePath.trim() === '') {
+    errors.push(issue('INVALID_POST_INDEX_PATH', path, 'Post index path must be a non-empty string'));
+    return;
+  }
+  if (routePath.trim() !== routePath || !routePath.startsWith('/')) {
+    errors.push(issue('INVALID_POST_INDEX_PATH', path, 'Post index path must be an absolute path starting with / and without surrounding whitespace'));
+    return;
+  }
+  if (routePath.includes('\\') || routePath.includes('?') || routePath.includes('#') || routePath.includes('%') || /[\s\u0000-\u001F\u007F]/.test(routePath)) {
+    errors.push(issue('INVALID_POST_INDEX_PATH', path, 'Post index path contains an unsafe character'));
+    return;
+  }
+  if (routePath.endsWith('.html') || routePath.includes('.html/')) {
+    errors.push(issue('INVALID_POST_INDEX_PATH', path, 'Post index path must not include a literal .html suffix'));
+    return;
+  }
+  if (routePath === '/') {
+    return;
+  }
+
+  const body = routePath.replace(/^\/+|\/+$/g, '');
+  if (!body) {
+    return;
+  }
+
+  const segments = body.split('/');
+  if (segments.some((segment) => segment === '')) {
+    errors.push(issue('INVALID_POST_INDEX_PATH', path, 'Post index path must not contain empty path segments'));
+    return;
+  }
+
+  for (const segment of segments) {
+    validatePathSegment(segment, path, 'INVALID_POST_INDEX_PATH', errors);
+  }
+}
+
 function validatePermalinkPattern(pattern, path, fieldName, errors) {
   if (pattern === undefined) {
     return;
@@ -554,7 +639,13 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'permalinks';
+    return key === 'permalinks' || key === 'front_page' || key === 'post_index';
+  }
+  if (path === 'site.front_page') {
+    return key === 'page_slug' || key === 'html';
+  }
+  if (path === 'site.post_index') {
+    return key === 'enabled' || key === 'path' || key === 'paginate';
   }
   if (path === 'site.permalinks') {
     return key === 'output_style' || PREVIEW_PERMALINK_FIELDS.includes(key);

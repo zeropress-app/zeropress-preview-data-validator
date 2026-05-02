@@ -11,6 +11,20 @@ export interface PreviewPermalinksData {
   tags?: string;
 }
 
+export type PreviewFrontPageType = 'theme_index' | 'page' | 'standalone_html';
+
+export interface PreviewFrontPageData {
+  type: PreviewFrontPageType;
+  page_slug?: string;
+  html?: string;
+}
+
+export interface PreviewPostIndexData {
+  enabled?: boolean;
+  path?: string;
+  paginate?: boolean;
+}
+
 export interface ValidationIssue {
   code: string;
   path: string;
@@ -30,6 +44,8 @@ export interface PreviewSiteData {
   timezone: string;
   disallowComments: boolean;
   permalinks?: PreviewPermalinksData;
+  front_page?: PreviewFrontPageData;
+  post_index?: PreviewPostIndexData;
   [key: string]: unknown;
 }
 

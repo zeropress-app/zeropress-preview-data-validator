@@ -95,6 +95,82 @@
       "description": "Absolute URL path pattern using full-segment tokens such as :slug or :public_id. Literal .html suffixes are not part of v0.5.",
       "markdownDescription": "Absolute URL path pattern using full-segment tokens such as `:slug` or `:public_id`. Literal `.html` suffixes are not part of `v0.5`."
     },
+    "frontPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional root front page selection policy.",
+      "markdownDescription": "Optional root front page selection policy.",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["theme_index", "page", "standalone_html"],
+          "description": "Front page source type.",
+          "markdownDescription": "Front page source type."
+        },
+        "page_slug": {
+          "$ref": "#/$defs/slugSegment",
+          "description": "Page slug used when type is page.",
+          "markdownDescription": "Page slug used when `type` is `page`."
+        },
+        "html": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trusted full HTML used when type is standalone_html.",
+          "markdownDescription": "Trusted full HTML used when `type` is `standalone_html`."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "page" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["page_slug"] }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "standalone_html" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["html"] }
+        }
+      ]
+    },
+    "postIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional post index generation policy.",
+      "markdownDescription": "Optional post index generation policy.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the site requests a post index route.",
+          "markdownDescription": "Whether the site requests a post index route."
+        },
+        "path": {
+          "$ref": "#/$defs/postIndexPath"
+        },
+        "paginate": {
+          "type": "boolean",
+          "description": "Whether the post index should generate page 2+ routes.",
+          "markdownDescription": "Whether the post index should generate page 2+ routes."
+        }
+      }
+    },
+    "postIndexPath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute public path for the post index route. Use / for the site root.",
+      "markdownDescription": "Absolute public path for the post index route. Use `/` for the site root.",
+      "pattern": "^/(?!.*//)(?!.*[%\\\\\\s\\u0000-\\u001F\\u007F?#!]).*$",
+      "not": {
+        "anyOf": [
+          { "pattern": "(^|/)\\.{1,2}(/|$)" },
+          { "pattern": "\\.html(/|$)" }
+        ]
+      }
+    },
     "pagePath": {
       "type": "string",
       "minLength": 1,
@@ -162,6 +238,12 @@
         },
         "permalinks": {
           "$ref": "#/$defs/permalinks"
+        },
+        "front_page": {
+          "$ref": "#/$defs/frontPage"
+        },
+        "post_index": {
+          "$ref": "#/$defs/postIndex"
         }
       },
       "additionalProperties": true
