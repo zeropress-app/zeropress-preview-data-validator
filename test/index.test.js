@@ -807,6 +807,38 @@ test('validatePreviewData rejects missing site.mediaBaseUrl', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'site.mediaBaseUrl'), true);
 });
 
+test('validatePreviewData accepts optional site.footer display data', () => {
+  const data = createValidPreviewData();
+  data.site.footer = {
+    copyright_text: 'Copyright 2026 Example Corp.',
+    attribution: {
+      enabled: false,
+    },
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid site.footer display data', () => {
+  const data = createValidPreviewData();
+  data.site.footer = {
+    copyright_text: '',
+    attribution: {
+      enabled: 'false',
+      label: 'Published with',
+    },
+    extra: true,
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.copyright_text'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.attribution.enabled'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.attribution.label'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.extra'), true);
+});
+
 test('validatePreviewData rejects malformed page featured_image', () => {
   const data = createValidPreviewData();
   data.content.pages[0].featured_image = '//cdn.example.com/broken.png';

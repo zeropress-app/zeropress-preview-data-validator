@@ -81,6 +81,9 @@ function validateSite(site, path, errors) {
   validatePermalinks(site.permalinks, `${path}.permalinks`, errors);
   validateFrontPage(site.front_page, `${path}.front_page`, errors);
   validatePostIndex(site.post_index, `${path}.post_index`, errors);
+  if (site.footer !== undefined) {
+    validateSiteFooter(site.footer, `${path}.footer`, errors);
+  }
 
   rejectLegacyKeys(site, path, errors, [
     'site_name',
@@ -115,6 +118,24 @@ function validateContent(content, path, errors) {
   validateArray(content.tags, `${path}.tags`, 'INVALID_TAGS', errors, (entry, index) => {
     validatePreviewTag(entry, `${path}.tags[${index}]`, errors);
   });
+}
+
+function validateSiteFooter(footer, path, errors) {
+  validateClosedObject(footer, path, errors, ['copyright_text', 'attribution']);
+  if (!isObject(footer)) {
+    return;
+  }
+
+  if (footer.copyright_text !== undefined) {
+    validateNonEmptyString(footer.copyright_text, `${path}.copyright_text`, 'INVALID_SITE_FOOTER_COPYRIGHT_TEXT', errors);
+  }
+
+  if (footer.attribution !== undefined) {
+    validateClosedObject(footer.attribution, `${path}.attribution`, errors, ['enabled']);
+    if (isObject(footer.attribution) && footer.attribution.enabled !== undefined) {
+      validateBoolean(footer.attribution.enabled, `${path}.attribution.enabled`, 'INVALID_SITE_FOOTER_ATTRIBUTION_ENABLED', errors);
+    }
+  }
 }
 
 function validateMenus(menus, path, errors) {
@@ -639,7 +660,13 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'permalinks' || key === 'front_page' || key === 'post_index';
+    return key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer';
+  }
+  if (path === 'site.footer') {
+    return key === 'copyright_text' || key === 'attribution';
+  }
+  if (path === 'site.footer.attribution') {
+    return key === 'enabled';
   }
   if (path === 'site.front_page') {
     return key === 'page_slug' || key === 'html';

@@ -244,9 +244,42 @@
         },
         "post_index": {
           "$ref": "#/$defs/postIndex"
+        },
+        "footer": {
+          "$ref": "#/$defs/siteFooter"
         }
       },
       "additionalProperties": true
+    },
+    "siteFooter": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site footer display data for themes.",
+      "markdownDescription": "Optional site footer display data for themes.",
+      "properties": {
+        "copyright_text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Theme-facing footer copyright or legal text. ZeroPress does not add a copyright symbol automatically.",
+          "markdownDescription": "Theme-facing footer copyright or legal text. ZeroPress does not add a copyright symbol automatically."
+        },
+        "attribution": {
+          "$ref": "#/$defs/siteFooterAttribution"
+        }
+      }
+    },
+    "siteFooterAttribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional ZeroPress attribution display policy for themes.",
+      "markdownDescription": "Optional ZeroPress attribution display policy for themes.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "When false, themes that support ZeroPress attribution should hide it. Missing or true means attribution may be shown.",
+          "markdownDescription": "When `false`, themes that support ZeroPress attribution should hide it. Missing or `true` means attribution may be shown."
+        }
+      }
     },
     "author": {
       "type": "object",

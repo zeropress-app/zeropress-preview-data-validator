@@ -46,7 +46,17 @@ export interface PreviewSiteData {
   permalinks?: PreviewPermalinksData;
   front_page?: PreviewFrontPageData;
   post_index?: PreviewPostIndexData;
+  footer?: PreviewSiteFooterData;
   [key: string]: unknown;
+}
+
+export interface PreviewSiteFooterData {
+  copyright_text?: string;
+  attribution?: PreviewSiteFooterAttributionData;
+}
+
+export interface PreviewSiteFooterAttributionData {
+  enabled?: boolean;
 }
 
 export interface PreviewAuthorData {
