@@ -83,6 +83,7 @@ function validateSite(site, path, errors) {
     'timeFormat',
     'timezone',
     'disallowComments',
+    'indexing',
     'permalinks',
     'front_page',
     'post_index',
@@ -103,6 +104,9 @@ function validateSite(site, path, errors) {
   validateString(site.timeFormat, `${path}.timeFormat`, 'INVALID_SITE_TIME_FORMAT', errors);
   validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
   validateBoolean(site.disallowComments, `${path}.disallowComments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
+  if (site.indexing !== undefined) {
+    validateBoolean(site.indexing, `${path}.indexing`, 'INVALID_SITE_INDEXING', errors);
+  }
   validatePermalinks(site.permalinks, `${path}.permalinks`, errors);
   validateFrontPage(site.front_page, `${path}.front_page`, errors);
   validatePostIndex(site.post_index, `${path}.post_index`, errors);
@@ -738,7 +742,7 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';

@@ -752,6 +752,29 @@ test('validatePreviewData accepts optional scalar site meta', () => {
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData accepts optional site indexing policy', () => {
+  for (const value of [undefined, true, false]) {
+    const data = createValidPreviewData();
+    if (value !== undefined) {
+      data.site.indexing = value;
+    }
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, true);
+  }
+});
+
+test('validatePreviewData rejects non-boolean site indexing policy', () => {
+  for (const value of ['false', 0]) {
+    const data = createValidPreviewData();
+    data.site.indexing = value;
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.errors.some((issue) => issue.path === 'site.indexing'), true);
+  }
+});
+
 test('validatePreviewData rejects extra site keys outside site.meta', () => {
   const data = createValidPreviewData();
   data.site.heroTitle = 'Hello';

@@ -239,6 +239,11 @@
         "disallowComments": {
           "type": "boolean"
         },
+        "indexing": {
+          "type": "boolean",
+          "description": "Optional fallback robots.txt indexing policy. Missing or true allows indexing in the generated fallback robots.txt; false disallows all agents in the fallback robots.txt.",
+          "markdownDescription": "Optional fallback `robots.txt` indexing policy. Missing or `true` allows indexing in the generated fallback `robots.txt`; `false` disallows all agents in the fallback `robots.txt`."
+        },
         "permalinks": {
           "$ref": "#/$defs/permalinks"
         },
@@ -766,6 +771,7 @@
         "timeFormat": "HH:mm",
         "timezone": "UTC",
         "disallowComments": false,
+        "indexing": true,
         "front_page": {
           "type": "theme_index"
         },

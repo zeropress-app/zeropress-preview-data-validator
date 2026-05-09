@@ -43,6 +43,7 @@ export interface PreviewSiteData {
   timeFormat: string;
   timezone: string;
   disallowComments: boolean;
+  indexing?: boolean;
   permalinks?: PreviewPermalinksData;
   front_page?: PreviewFrontPageData;
   post_index?: PreviewPostIndexData;

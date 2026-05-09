@@ -56,6 +56,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
 - comment rendering policy is carried as `site.disallowComments`
+- fallback `robots.txt` indexing policy may be carried as optional `site.indexing`
 - enabled menus may be exported in optional root `menus`
 - `menus` is keyed by stable `menu_id`
 - menu items use `title`, `url`, `type`, `target`, and recursive `children`
