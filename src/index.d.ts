@@ -39,6 +39,7 @@ export interface PreviewSiteData {
   url: string;
   mediaBaseUrl: string;
   mediaDeliveryMode?: PreviewMediaDeliveryMode;
+  favicon?: PreviewSiteFaviconData;
   locale: string;
   postsPerPage: number;
   dateFormat: string;
@@ -51,6 +52,13 @@ export interface PreviewSiteData {
   post_index?: PreviewPostIndexData;
   footer?: PreviewSiteFooterData;
   meta?: Record<string, PreviewMetaValue>;
+}
+
+export interface PreviewSiteFaviconData {
+  icon?: string;
+  svg?: string;
+  png?: string;
+  apple_touch_icon?: string;
 }
 
 export interface PreviewSiteFooterData {

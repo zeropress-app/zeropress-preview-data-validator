@@ -223,6 +223,9 @@
           "description": "Optional media delivery capability. media_domain means media URLs under site.mediaBaseUrl support ZeroPress image variant query parameters.",
           "markdownDescription": "Optional media delivery capability. `media_domain` means media URLs under `site.mediaBaseUrl` support ZeroPress image variant query parameters."
         },
+        "favicon": {
+          "$ref": "#/$defs/siteFavicon"
+        },
         "locale": {
           "type": "string",
           "minLength": 2
@@ -267,6 +270,44 @@
         }
       },
       "additionalProperties": false
+    },
+    "siteFavicon": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site favicon links for HTML head output.",
+      "markdownDescription": "Optional site favicon links for HTML `<head>` output.",
+      "anyOf": [
+        { "required": ["icon"] },
+        { "required": ["svg"] },
+        { "required": ["png"] },
+        { "required": ["apple_touch_icon"] }
+      ],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ICO or generic favicon URL/path.",
+          "markdownDescription": "ICO or generic favicon URL/path."
+        },
+        "svg": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SVG favicon URL/path.",
+          "markdownDescription": "SVG favicon URL/path."
+        },
+        "png": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PNG favicon URL/path.",
+          "markdownDescription": "PNG favicon URL/path."
+        },
+        "apple_touch_icon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Apple touch icon URL/path.",
+          "markdownDescription": "Apple touch icon URL/path."
+        }
+      }
     },
     "siteFooter": {
       "type": "object",
@@ -802,6 +843,12 @@
         "url": "https://example.com",
         "mediaBaseUrl": "https://media.example.com",
         "mediaDeliveryMode": "media_domain",
+        "favicon": {
+          "icon": "/favicon.ico",
+          "svg": "/favicon.svg",
+          "png": "/favicon.png",
+          "apple_touch_icon": "/apple-touch-icon.png"
+        },
         "locale": "en-US",
         "postsPerPage": 10,
         "dateFormat": "YYYY-MM-DD",

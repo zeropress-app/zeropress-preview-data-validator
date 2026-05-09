@@ -904,6 +904,41 @@ test('validatePreviewData rejects invalid site.mediaDeliveryMode', () => {
   assert.equal(getIssueAtPath(result, 'site.mediaDeliveryMode')?.code, 'INVALID_SITE_MEDIA_DELIVERY_MODE');
 });
 
+test('validatePreviewData accepts optional site.favicon entries', () => {
+  const data = createValidPreviewData();
+  data.site.favicon = {
+    icon: '/favicon.ico',
+    svg: './favicon.svg',
+    png: 'https://cdn.example.com/favicon.png',
+    apple_touch_icon: '/apple-touch-icon.png',
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid site.favicon payloads', () => {
+  const emptyFavicon = createValidPreviewData();
+  emptyFavicon.site.favicon = {};
+  const emptyResult = validatePreviewData(emptyFavicon);
+  assert.equal(emptyResult.ok, false);
+  assert.equal(getIssueAtPath(emptyResult, 'site.favicon')?.code, 'INVALID_SITE_FAVICON');
+
+  const invalidFavicon = createValidPreviewData();
+  invalidFavicon.site.favicon = {
+    icon: '',
+    svg: '//cdn.example.com/favicon.svg',
+    png: 123,
+    shortcut_icon: '/shortcut.ico',
+  };
+  const invalidResult = validatePreviewData(invalidFavicon);
+  assert.equal(invalidResult.ok, false);
+  assert.equal(getIssueAtPath(invalidResult, 'site.favicon.icon')?.code, 'INVALID_SITE_FAVICON_URL');
+  assert.equal(getIssueAtPath(invalidResult, 'site.favicon.svg')?.code, 'INVALID_SITE_FAVICON_URL');
+  assert.equal(getIssueAtPath(invalidResult, 'site.favicon.png')?.code, 'INVALID_SITE_FAVICON_URL');
+  assert.equal(invalidResult.errors.some((issue) => issue.path === 'site.favicon.shortcut_icon'), true);
+});
+
 test('validatePreviewData allows an empty string for site.mediaBaseUrl', () => {
   const data = createValidPreviewData();
   data.site.mediaBaseUrl = '';

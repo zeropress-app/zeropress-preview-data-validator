@@ -79,6 +79,7 @@ function validateSite(site, path, errors) {
     'url',
     'mediaBaseUrl',
     'mediaDeliveryMode',
+    'favicon',
     'locale',
     'postsPerPage',
     'dateFormat',
@@ -102,6 +103,9 @@ function validateSite(site, path, errors) {
   validateSiteUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
   if (site.mediaDeliveryMode !== undefined) {
     validateEnum(site.mediaDeliveryMode, `${path}.mediaDeliveryMode`, 'INVALID_SITE_MEDIA_DELIVERY_MODE', errors, PREVIEW_MEDIA_DELIVERY_MODES);
+  }
+  if (site.favicon !== undefined) {
+    validateSiteFavicon(site.favicon, `${path}.favicon`, errors);
   }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
@@ -421,6 +425,28 @@ function validateMediaArray(value, path, errors) {
 
     sources.add(entry.src);
   });
+}
+
+function validateSiteFavicon(favicon, path, errors) {
+  validateClosedObject(favicon, path, errors, ['icon', 'svg', 'png', 'apple_touch_icon']);
+  if (!isObject(favicon)) {
+    return;
+  }
+
+  if (
+    favicon.icon === undefined &&
+    favicon.svg === undefined &&
+    favicon.png === undefined &&
+    favicon.apple_touch_icon === undefined
+  ) {
+    errors.push(issue('INVALID_SITE_FAVICON', path, 'site.favicon must include at least one favicon URL'));
+  }
+
+  for (const key of ['icon', 'svg', 'png', 'apple_touch_icon']) {
+    if (favicon[key] !== undefined) {
+      validateUrlLike(favicon[key], `${path}.${key}`, 'INVALID_SITE_FAVICON_URL', errors);
+    }
+  }
 }
 
 function validatePreviewMedia(media, path, errors) {
@@ -783,7 +809,10 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'mediaDeliveryMode' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'mediaDeliveryMode' || key === 'favicon' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+  }
+  if (path === 'site.favicon') {
+    return key === 'icon' || key === 'svg' || key === 'png' || key === 'apple_touch_icon';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
