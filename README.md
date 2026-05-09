@@ -53,6 +53,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - pages may carry optional `path` for nested page URLs
 - pages, categories, and tags do not carry internal `id` fields
 - `site.mediaBaseUrl` is required and must be either an empty string or an absolute URI
+- optional `site.mediaDeliveryMode` may be `none` or `media_domain`
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
 - comment rendering policy is carried as `site.disallowComments`
@@ -68,6 +69,8 @@ Published schema files are shipped from the package `schemas/` directory.
 - widget-type-specific `settings` structure is not enforced by this validator in v0.5
 - named page/post collections may be exported in optional root `collections`
 - `collections` is keyed by stable collection ids and contains ordered `{ type, slug }` item references
+- managed media metadata may be exported in optional `content.media[]`
+- media registry items use `src`, positive integer `width`, positive integer `height`, and optional `alt`
 - optional `custom_css` carries site-level stylesheet input as `{ content }`
 - optional `custom_html` carries trusted site-level HTML injection slots as `{ head_end: { content }, body_end: { content } }`
 

@@ -1,6 +1,7 @@
 export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
 export type PreviewMetaValue = string | number | boolean | null;
+export type PreviewMediaDeliveryMode = 'none' | 'media_domain';
 export type PreviewPermalinkOutputStyle = 'directory' | 'html-extension';
 
 export interface PreviewPermalinksData {
@@ -37,6 +38,7 @@ export interface PreviewSiteData {
   description: string;
   url: string;
   mediaBaseUrl: string;
+  mediaDeliveryMode?: PreviewMediaDeliveryMode;
   locale: string;
   postsPerPage: number;
   dateFormat: string;
@@ -64,6 +66,13 @@ export interface PreviewAuthorData {
   id: string;
   display_name: string;
   avatar?: string;
+}
+
+export interface PreviewMediaData {
+  src: string;
+  width: number;
+  height: number;
+  alt?: string;
 }
 
 export interface PreviewPostData {
@@ -167,6 +176,7 @@ export interface PreviewContentData {
   pages: PreviewPageData[];
   categories: PreviewCategoryData[];
   tags: PreviewTagData[];
+  media?: PreviewMediaData[];
 }
 
 export interface PreviewDataV05 {

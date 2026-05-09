@@ -217,6 +217,12 @@
             { "format": "uri" }
           ]
         },
+        "mediaDeliveryMode": {
+          "type": "string",
+          "enum": ["none", "media_domain"],
+          "description": "Optional media delivery capability. media_domain means media URLs under site.mediaBaseUrl support ZeroPress image variant query parameters.",
+          "markdownDescription": "Optional media delivery capability. `media_domain` means media URLs under `site.mediaBaseUrl` support ZeroPress image variant query parameters."
+        },
         "locale": {
           "type": "string",
           "minLength": 2
@@ -308,6 +314,30 @@
         "avatar": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src", "width", "height"],
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Managed media source URL or path. Matches existing media fields such as featured_image or avatar after renderer normalization.",
+          "markdownDescription": "Managed media source URL or path. Matches existing media fields such as `featured_image` or `avatar` after renderer normalization."
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt": {
+          "type": "string"
         }
       }
     },
@@ -750,6 +780,12 @@
           "items": {
             "$ref": "#/$defs/tag"
           }
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/media"
+          }
         }
       }
     }
@@ -764,7 +800,8 @@
         "title": "Example Magazine",
         "description": "A ZeroPress example site.",
         "url": "https://example.com",
-        "mediaBaseUrl": "",
+        "mediaBaseUrl": "https://media.example.com",
+        "mediaDeliveryMode": "media_domain",
         "locale": "en-US",
         "postsPerPage": 10,
         "dateFormat": "YYYY-MM-DD",
@@ -795,7 +832,8 @@
         "authors": [
           {
             "id": "editor",
-            "display_name": "Example Editor"
+            "display_name": "Example Editor",
+            "avatar": "/avatars/editor.jpg"
           }
         ],
         "posts": [
@@ -844,6 +882,20 @@
             "name": "Intro",
             "slug": "intro",
             "description": "Introductory content."
+          }
+        ],
+        "media": [
+          {
+            "src": "/avatars/editor.jpg",
+            "width": 512,
+            "height": 512,
+            "alt": "Example Editor"
+          },
+          {
+            "src": "/images/hello.jpg",
+            "width": 1600,
+            "height": 900,
+            "alt": "Hello ZeroPress cover image"
           }
         ]
       },

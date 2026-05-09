@@ -883,6 +883,27 @@ test('validatePreviewData accepts site.mediaBaseUrl', () => {
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData accepts optional site.mediaDeliveryMode values', () => {
+  const data = createValidPreviewData();
+  data.site.mediaDeliveryMode = 'media_domain';
+
+  let result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+
+  data.site.mediaDeliveryMode = 'none';
+  result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid site.mediaDeliveryMode', () => {
+  const data = createValidPreviewData();
+  data.site.mediaDeliveryMode = 'cloudflare';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'site.mediaDeliveryMode')?.code, 'INVALID_SITE_MEDIA_DELIVERY_MODE');
+});
+
 test('validatePreviewData allows an empty string for site.mediaBaseUrl', () => {
   const data = createValidPreviewData();
   data.site.mediaBaseUrl = '';
@@ -898,6 +919,59 @@ test('validatePreviewData rejects missing site.mediaBaseUrl', () => {
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'site.mediaBaseUrl'), true);
+});
+
+test('validatePreviewData accepts optional content.media entries', () => {
+  const data = createValidPreviewData();
+  data.content.media = [
+    {
+      src: '/originals/2026/03/published-post.png',
+      width: 1600,
+      height: 900,
+      alt: 'Published post image',
+    },
+    {
+      src: 'https://cdn.example.com/avatar.jpg',
+      width: 512,
+      height: 512,
+    },
+  ];
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects duplicate content.media src values', () => {
+  const data = createValidPreviewData();
+  data.content.media = [
+    { src: '/images/duplicate.jpg', width: 800, height: 450 },
+    { src: '/images/duplicate.jpg', width: 400, height: 225 },
+  ];
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'content.media[1].src')?.code, 'DUPLICATE_MEDIA_SRC');
+});
+
+test('validatePreviewData rejects invalid content.media fields', () => {
+  const data = createValidPreviewData();
+  data.content.media = [
+    {
+      src: '//cdn.example.com/broken.jpg',
+      width: 0,
+      height: -1,
+      alt: 123,
+      id: 'legacy-media-id',
+    },
+  ];
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'content.media[0].src')?.code, 'INVALID_MEDIA_SRC');
+  assert.equal(getIssueAtPath(result, 'content.media[0].width')?.code, 'INVALID_MEDIA_WIDTH');
+  assert.equal(getIssueAtPath(result, 'content.media[0].height')?.code, 'INVALID_MEDIA_HEIGHT');
+  assert.equal(getIssueAtPath(result, 'content.media[0].alt')?.code, 'INVALID_MEDIA_ALT');
+  assert.equal(result.errors.some((issue) => issue.path === 'content.media[0].id'), true);
 });
 
 test('validatePreviewData accepts optional site.footer display data', () => {

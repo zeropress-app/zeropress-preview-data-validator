@@ -9,6 +9,7 @@ const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_COLLECTION_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_COLLECTION_ITEM_TYPES = ['post', 'page'];
+const PREVIEW_MEDIA_DELIVERY_MODES = ['none', 'media_domain'];
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
 const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
@@ -77,6 +78,7 @@ function validateSite(site, path, errors) {
     'description',
     'url',
     'mediaBaseUrl',
+    'mediaDeliveryMode',
     'locale',
     'postsPerPage',
     'dateFormat',
@@ -98,6 +100,9 @@ function validateSite(site, path, errors) {
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
   validateSiteUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
+  if (site.mediaDeliveryMode !== undefined) {
+    validateEnum(site.mediaDeliveryMode, `${path}.mediaDeliveryMode`, 'INVALID_SITE_MEDIA_DELIVERY_MODE', errors, PREVIEW_MEDIA_DELIVERY_MODES);
+  }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
   validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
@@ -131,7 +136,7 @@ function validateSite(site, path, errors) {
 }
 
 function validateContent(content, path, errors) {
-  validateClosedObject(content, path, errors, ['authors', 'posts', 'pages', 'categories', 'tags']);
+  validateClosedObject(content, path, errors, ['authors', 'posts', 'pages', 'categories', 'tags', 'media']);
   if (!isObject(content)) {
     return;
   }
@@ -148,6 +153,9 @@ function validateContent(content, path, errors) {
   validateArray(content.tags, `${path}.tags`, 'INVALID_TAGS', errors, (entry, index) => {
     validatePreviewTag(entry, `${path}.tags[${index}]`, errors);
   });
+  if (content.media !== undefined) {
+    validateMediaArray(content.media, `${path}.media`, errors);
+  }
 }
 
 function validateSiteFooter(footer, path, errors) {
@@ -393,6 +401,39 @@ function validatePreviewAuthor(author, path, errors) {
 
   if (author.avatar !== undefined) {
     validateUrlLike(author.avatar, `${path}.avatar`, 'INVALID_AUTHOR_AVATAR', errors);
+  }
+}
+
+function validateMediaArray(value, path, errors) {
+  const sources = new Set();
+
+  validateArray(value, path, 'INVALID_MEDIA', errors, (entry, index) => {
+    validatePreviewMedia(entry, `${path}[${index}]`, errors);
+
+    if (!isObject(entry) || typeof entry.src !== 'string') {
+      return;
+    }
+
+    if (sources.has(entry.src)) {
+      errors.push(issue('DUPLICATE_MEDIA_SRC', `${path}[${index}].src`, 'Media src values must be unique'));
+      return;
+    }
+
+    sources.add(entry.src);
+  });
+}
+
+function validatePreviewMedia(media, path, errors) {
+  validateClosedObject(media, path, errors, ['src', 'width', 'height', 'alt']);
+  if (!isObject(media)) {
+    return;
+  }
+
+  validateUrlLike(media.src, `${path}.src`, 'INVALID_MEDIA_SRC', errors);
+  validateInteger(media.width, `${path}.width`, 'INVALID_MEDIA_WIDTH', errors, { minimum: 1 });
+  validateInteger(media.height, `${path}.height`, 'INVALID_MEDIA_HEIGHT', errors, { minimum: 1 });
+  if (media.alt !== undefined) {
+    validateString(media.alt, `${path}.alt`, 'INVALID_MEDIA_ALT', errors);
   }
 }
 
@@ -742,7 +783,7 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'mediaDeliveryMode' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
@@ -759,8 +800,14 @@ function isOptionalKey(path, key) {
   if (path === 'site.permalinks') {
     return key === 'output_style' || PREVIEW_PERMALINK_FIELDS.includes(key);
   }
+  if (path === 'content') {
+    return key === 'media';
+  }
   if (path.startsWith('content.authors[')) {
     return key === 'avatar';
+  }
+  if (path.startsWith('content.media[')) {
+    return key === 'alt';
   }
   if (path.startsWith('widgets.') && path.includes('.items[')) {
     return key === 'settings';
