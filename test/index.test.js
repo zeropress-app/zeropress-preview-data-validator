@@ -24,7 +24,6 @@ function createValidPreviewData() {
       timeFormat: 'HH:mm',
       timezone: 'UTC',
       disallowComments: false,
-      custom_setting: 'value',
     },
     content: {
       authors: [
@@ -459,22 +458,20 @@ test('validatePreviewData rejects duplicate post public_id values', () => {
   assert.equal(issue.code, 'DUPLICATE_POST_PUBLIC_ID');
 });
 
-test('validatePreviewData rejects missing menus', () => {
+test('validatePreviewData accepts missing menus', () => {
   const data = createValidPreviewData();
   delete data.menus;
 
   const result = validatePreviewData(data);
-  assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'menus'), true);
+  assert.equal(result.ok, true);
 });
 
-test('validatePreviewData rejects missing widgets', () => {
+test('validatePreviewData accepts missing widgets', () => {
   const data = createValidPreviewData();
   delete data.widgets;
 
   const result = validatePreviewData(data);
-  assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'widgets'), true);
+  assert.equal(result.ok, true);
 });
 
 test('validatePreviewData accepts nested menus of arbitrary depth', () => {
@@ -742,12 +739,85 @@ test('validatePreviewData rejects replaced preview-data v0.5 site keys', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'site.media_delivery_base_url'), true);
 });
 
-test('validatePreviewData allows extra site keys for future theme-facing settings', () => {
+test('validatePreviewData accepts optional scalar site meta', () => {
+  const data = createValidPreviewData();
+  data.site.meta = {
+    issue: 'Spring 2026',
+    featured_count: 4,
+    show_sponsor_banner: true,
+    empty_value: null,
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects extra site keys outside site.meta', () => {
   const data = createValidPreviewData();
   data.site.heroTitle = 'Hello';
 
   const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.heroTitle'), true);
+});
+
+test('validatePreviewData rejects nested site meta values', () => {
+  const data = createValidPreviewData();
+  data.site.meta = {
+    nested: { value: true },
+    list: ['bad'],
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.meta.nested'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.meta.list'), true);
+});
+
+test('validatePreviewData accepts optional named collections', () => {
+  const data = createValidPreviewData();
+  data.collections = {
+    'cover-story': {
+      title: 'Cover Story',
+      description: 'Main feature',
+      items: [
+        { type: 'post', slug: 'hello-zeropress' },
+        { type: 'page', slug: 'about' },
+      ],
+    },
+    essays: {
+      items: [
+        { type: 'post', slug: 'hello-zeropress' },
+      ],
+    },
+  };
+
+  const result = validatePreviewData(data);
   assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid named collections', () => {
+  const data = createValidPreviewData();
+  data.collections = {
+    '-bad': {
+      title: '',
+      items: [
+        { type: 'post', slug: 'hello-zeropress' },
+        { type: 'post', slug: 'hello-zeropress' },
+        { type: 'category', slug: 'general', extra: true },
+        { type: 'page', slug: '../bad' },
+      ],
+    },
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad.title'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad.items[1].slug' && issue.code === 'DUPLICATE_COLLECTION_ITEM'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad.items[2].type'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad.items[2].extra'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'collections.-bad.items[3].slug'), true);
 });
 
 test('validatePreviewData allows content category and tag descriptions to be omitted', () => {

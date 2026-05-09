@@ -2,11 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://zeropress.dev/schemas/preview-data.v0.5.schema.json",
   "title": "ZeroPress Theme Preview Data v0.5",
-  "description": "ZeroPress theme preview payload. v0.5 is data-only and includes enabled menus keyed by menu_id plus enabled widget areas keyed by widget_area_id.",
-  "markdownDescription": "ZeroPress theme preview payload. `v0.5` is data-only and includes enabled menus keyed by `menu_id` plus enabled widget areas keyed by `widget_area_id`.",
+  "description": "ZeroPress theme preview payload. v0.5 is data-only and may include optional menus, widget areas, and named collections for themes.",
+  "markdownDescription": "ZeroPress theme preview payload. `v0.5` is data-only and may include optional menus, widget areas, and named collections for themes.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "generator", "generated_at", "site", "content", "menus", "widgets"],
+  "required": ["version", "generator", "generated_at", "site", "content"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -41,6 +41,9 @@
     },
     "widgets": {
       "$ref": "#/$defs/widgets"
+    },
+    "collections": {
+      "$ref": "#/$defs/collections"
     },
     "custom_css": {
       "$ref": "#/$defs/customCss"
@@ -247,9 +250,12 @@
         },
         "footer": {
           "$ref": "#/$defs/siteFooter"
+        },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "siteFooter": {
       "type": "object",
@@ -585,6 +591,65 @@
         "$ref": "#/$defs/widgetArea"
       }
     },
+    "collectionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "slug"],
+      "description": "A reference to a page or post included in a named collection.",
+      "markdownDescription": "A reference to a page or post included in a named collection.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["post", "page"],
+          "description": "Referenced content type.",
+          "markdownDescription": "Referenced content type."
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        }
+      }
+    },
+    "collection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items"],
+      "description": "A named curated content list exported to themes under its collection id.",
+      "markdownDescription": "A named curated content list exported to themes under its collection id.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional display title for the collection.",
+          "markdownDescription": "Optional display title for the collection."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional helper text for the collection.",
+          "markdownDescription": "Optional helper text for the collection."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/collectionItem"
+          }
+        }
+      }
+    },
+    "collections": {
+      "type": "object",
+      "default": {},
+      "description": "Named curated content lists keyed by collection id.",
+      "markdownDescription": "Named curated content lists keyed by collection id.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable collection identifier.",
+        "markdownDescription": "Stable collection identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/collection"
+      }
+    },
     "customCss": {
       "type": "object",
       "additionalProperties": false,
@@ -683,5 +748,150 @@
         }
       }
     }
-  }
+  },
+  "examples": [
+    {
+      "$schema": "https://zeropress.dev/schemas/preview-data.v0.5.schema.json",
+      "version": "0.5",
+      "generator": "example-generator",
+      "generated_at": "2026-05-09T00:00:00Z",
+      "site": {
+        "title": "Example Magazine",
+        "description": "A ZeroPress example site.",
+        "url": "https://example.com",
+        "mediaBaseUrl": "",
+        "locale": "en-US",
+        "postsPerPage": 10,
+        "dateFormat": "YYYY-MM-DD",
+        "timeFormat": "HH:mm",
+        "timezone": "UTC",
+        "disallowComments": false,
+        "front_page": {
+          "type": "theme_index"
+        },
+        "post_index": {
+          "enabled": true,
+          "path": "/",
+          "paginate": true
+        },
+        "footer": {
+          "copyright_text": "Example Magazine",
+          "attribution": {
+            "enabled": true
+          }
+        },
+        "meta": {
+          "issue": "Spring 2026",
+          "show_sponsor_banner": false
+        }
+      },
+      "content": {
+        "authors": [
+          {
+            "id": "editor",
+            "display_name": "Example Editor"
+          }
+        ],
+        "posts": [
+          {
+            "public_id": 1,
+            "title": "Hello ZeroPress",
+            "slug": "hello-zeropress",
+            "content": "# Hello ZeroPress\n\nWelcome to the example post.",
+            "document_type": "markdown",
+            "excerpt": "Welcome to the example post.",
+            "published_at_iso": "2026-05-09T00:00:00Z",
+            "updated_at_iso": "2026-05-09T00:00:00Z",
+            "author_id": "editor",
+            "featured_image": "/images/hello.jpg",
+            "meta": {
+              "badge": "Feature"
+            },
+            "status": "published",
+            "allow_comments": true,
+            "category_slugs": ["news"],
+            "tag_slugs": ["intro"]
+          }
+        ],
+        "pages": [
+          {
+            "title": "About",
+            "slug": "about",
+            "content": "# About\n\nAbout this site.",
+            "document_type": "markdown",
+            "excerpt": "About this site.",
+            "meta": {
+              "nav_label": "About"
+            },
+            "status": "published"
+          }
+        ],
+        "categories": [
+          {
+            "name": "News",
+            "slug": "news",
+            "description": "Site news and updates."
+          }
+        ],
+        "tags": [
+          {
+            "name": "Intro",
+            "slug": "intro",
+            "description": "Introductory content."
+          }
+        ]
+      },
+      "menus": {
+        "primary": {
+          "name": "Primary Menu",
+          "items": [
+            {
+              "title": "Home",
+              "url": "/",
+              "type": "custom",
+              "target": "_self",
+              "children": []
+            },
+            {
+              "title": "About",
+              "url": "/about/",
+              "type": "page",
+              "target": "_self",
+              "children": []
+            }
+          ]
+        }
+      },
+      "widgets": {
+        "sidebar": {
+          "name": "Sidebar",
+          "items": [
+            {
+              "type": "text",
+              "title": "About This Site",
+              "settings": {
+                "body": "A short reusable widget example."
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "cover-story": {
+          "title": "Cover Story",
+          "description": "Curated content for a featured area.",
+          "items": [
+            {
+              "type": "post",
+              "slug": "hello-zeropress"
+            },
+            {
+              "type": "page",
+              "slug": "about"
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

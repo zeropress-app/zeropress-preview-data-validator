@@ -48,7 +48,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - posts reference authors via `author_id`
 - post `public_id` values are positive unique integers
 - body source is carried as raw `content` with explicit `document_type`
-- posts and pages may carry optional generator-defined scalar metadata in `meta`
+- `site`, posts, and pages may carry optional generator-defined scalar metadata in `meta`
 - `site.permalinks` may define URL/output policy for posts, pages, categories, and tags
 - pages may carry optional `path` for nested page URLs
 - pages, categories, and tags do not carry internal `id` fields
@@ -56,15 +56,17 @@ Published schema files are shipped from the package `schemas/` directory.
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
 - comment rendering policy is carried as `site.disallowComments`
-- enabled menus are exported in root `menus`
+- enabled menus may be exported in optional root `menus`
 - `menus` is keyed by stable `menu_id`
 - menu items use `title`, `url`, `type`, `target`, and recursive `children`
 - menu item `target` is `_self` or `_blank`
 - menu items do not carry admin-only fields such as `reference_id`
-- enabled widget areas are exported in root `widgets`
+- enabled widget areas may be exported in optional root `widgets`
 - `widgets` is keyed by stable `widget_area_id`
 - widget items intentionally fix only the common shell: `type`, `title`, and optional `settings`
 - widget-type-specific `settings` structure is not enforced by this validator in v0.5
+- named page/post collections may be exported in optional root `collections`
+- `collections` is keyed by stable collection ids and contains ordered `{ type, slug }` item references
 - optional `custom_css` carries site-level stylesheet input as `{ content }`
 - optional `custom_html` carries trusted site-level HTML injection slots as `{ head_end: { content }, body_end: { content } }`
 

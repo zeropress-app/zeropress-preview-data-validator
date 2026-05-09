@@ -7,6 +7,8 @@ const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
 const PREVIEW_MENU_TARGETS = ['_self', '_blank'];
 const PREVIEW_MENU_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
+const PREVIEW_COLLECTION_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
+const PREVIEW_COLLECTION_ITEM_TYPES = ['post', 'page'];
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
 const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
@@ -20,7 +22,7 @@ const PREVIEW_PERMALINK_TOKENS = Object.freeze({
 export function validatePreviewData(data) {
   const errors = [];
 
-  validateClosedObject(data, '', errors, ['$schema', 'version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'custom_css', 'custom_html']);
+  validateClosedObject(data, '', errors, ['$schema', 'version', 'generator', 'generated_at', 'site', 'content', 'menus', 'widgets', 'collections', 'custom_css', 'custom_html']);
 
   if (isObject(data)) {
     if (data.$schema !== undefined) {
@@ -32,8 +34,15 @@ export function validatePreviewData(data) {
 
     validateSite(data.site, 'site', errors);
     validateContent(data.content, 'content', errors);
-    validateMenus(data.menus, 'menus', errors);
-    validateWidgets(data.widgets, 'widgets', errors);
+    if (data.menus !== undefined) {
+      validateMenus(data.menus, 'menus', errors);
+    }
+    if (data.widgets !== undefined) {
+      validateWidgets(data.widgets, 'widgets', errors);
+    }
+    if (data.collections !== undefined) {
+      validateCollections(data.collections, 'collections', errors);
+    }
     if (data.custom_css !== undefined) {
       validateCustomCss(data.custom_css, 'custom_css', errors);
     }
@@ -63,7 +72,23 @@ export function isPreviewData(data) {
 }
 
 function validateSite(site, path, errors) {
-  validateObject(site, path, 'INVALID_SITE', errors);
+  validateClosedObject(site, path, errors, [
+    'title',
+    'description',
+    'url',
+    'mediaBaseUrl',
+    'locale',
+    'postsPerPage',
+    'dateFormat',
+    'timeFormat',
+    'timezone',
+    'disallowComments',
+    'permalinks',
+    'front_page',
+    'post_index',
+    'footer',
+    'meta',
+  ]);
   if (!isObject(site)) {
     return;
   }
@@ -81,6 +106,7 @@ function validateSite(site, path, errors) {
   validatePermalinks(site.permalinks, `${path}.permalinks`, errors);
   validateFrontPage(site.front_page, `${path}.front_page`, errors);
   validatePostIndex(site.post_index, `${path}.post_index`, errors);
+  validatePreviewMeta(site.meta, `${path}.meta`, errors);
   if (site.footer !== undefined) {
     validateSiteFooter(site.footer, `${path}.footer`, errors);
   }
@@ -194,6 +220,58 @@ function validateWidgets(widgets, path, errors) {
     }
 
     validatePreviewWidgetArea(widgetArea, `${path}.${widgetAreaId}`, errors);
+  }
+}
+
+function validateCollections(collections, path, errors) {
+  validateObject(collections, path, 'INVALID_COLLECTIONS', errors);
+  if (!isObject(collections)) {
+    return;
+  }
+
+  for (const [collectionId, collection] of Object.entries(collections)) {
+    if (!PREVIEW_COLLECTION_ID_PATTERN.test(collectionId)) {
+      errors.push(issue('INVALID_COLLECTION_ID', `${path}.${collectionId}`, 'Collection ids must match ^[a-z][a-z0-9_-]{0,63}$'));
+    }
+
+    validatePreviewCollection(collection, `${path}.${collectionId}`, errors);
+  }
+}
+
+function validatePreviewCollection(collection, path, errors) {
+  validateClosedObject(collection, path, errors, ['title', 'description', 'items']);
+  if (!isObject(collection)) {
+    return;
+  }
+
+  if (collection.title !== undefined) {
+    validateNonEmptyString(collection.title, `${path}.title`, 'INVALID_COLLECTION_TITLE', errors);
+  }
+  if (collection.description !== undefined) {
+    validateString(collection.description, `${path}.description`, 'INVALID_COLLECTION_DESCRIPTION', errors);
+  }
+
+  const seenItems = new Set();
+  validateArray(collection.items, `${path}.items`, 'INVALID_COLLECTION_ITEMS', errors, (entry, index) => {
+    validatePreviewCollectionItem(entry, `${path}.items[${index}]`, errors, seenItems);
+  });
+}
+
+function validatePreviewCollectionItem(item, path, errors, seenItems) {
+  validateClosedObject(item, path, errors, ['type', 'slug']);
+  if (!isObject(item)) {
+    return;
+  }
+
+  validateEnum(item.type, `${path}.type`, 'INVALID_COLLECTION_ITEM_TYPE', errors, PREVIEW_COLLECTION_ITEM_TYPES);
+  validateSlugSegment(item.slug, `${path}.slug`, 'INVALID_COLLECTION_ITEM_SLUG', errors);
+
+  if (typeof item.type === 'string' && PREVIEW_COLLECTION_ITEM_TYPES.includes(item.type) && typeof item.slug === 'string') {
+    const key = `${item.type}:${item.slug}`;
+    if (seenItems.has(key)) {
+      errors.push(issue('DUPLICATE_COLLECTION_ITEM', `${path}.slug`, 'Duplicate collection item in the same collection'));
+    }
+    seenItems.add(key);
   }
 }
 
@@ -640,7 +718,7 @@ function validateClosedObject(value, path, errors, allowedKeys) {
   }
 
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.includes(key) && !isSiteExtensionKey(path, key)) {
+    if (!allowedKeys.includes(key)) {
       errors.push(issue('UNKNOWN_PROPERTY', path ? `${path}.${key}` : key, 'Unexpected property'));
     }
   }
@@ -654,13 +732,13 @@ function validateClosedObject(value, path, errors, allowedKeys) {
 
 function isOptionalKey(path, key) {
   if (path === '') {
-    return key === '$schema' || key === 'custom_css' || key === 'custom_html';
+    return key === '$schema' || key === 'menus' || key === 'widgets' || key === 'collections' || key === 'custom_css' || key === 'custom_html';
   }
   if (path === 'custom_html') {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer';
+    return key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
@@ -683,6 +761,9 @@ function isOptionalKey(path, key) {
   if (path.startsWith('widgets.') && path.includes('.items[')) {
     return key === 'settings';
   }
+  if (path.startsWith('collections.') && !path.includes('.items[')) {
+    return key === 'title' || key === 'description';
+  }
   if (path.startsWith('content.posts[')) {
     return key === 'id' || key === 'featured_image' || key === 'meta';
   }
@@ -693,23 +774,6 @@ function isOptionalKey(path, key) {
     return key === 'description';
   }
   return false;
-}
-
-function isSiteExtensionKey(path, key) {
-  if (path !== 'site') {
-    return false;
-  }
-
-  return ![
-    'site_name',
-    'site_description',
-    'site_url',
-    'metadata',
-    'media_delivery_mode',
-    'media_delivery_base_url',
-    'site_timezone',
-    'site_locale',
-  ].includes(key);
 }
 
 function validateSlugArray(value, path, code, errors) {

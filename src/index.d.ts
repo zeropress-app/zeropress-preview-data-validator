@@ -47,7 +47,7 @@ export interface PreviewSiteData {
   front_page?: PreviewFrontPageData;
   post_index?: PreviewPostIndexData;
   footer?: PreviewSiteFooterData;
-  [key: string]: unknown;
+  meta?: Record<string, PreviewMetaValue>;
 }
 
 export interface PreviewSiteFooterData {
@@ -134,6 +134,19 @@ export interface PreviewWidgetAreaData {
   items: PreviewWidgetItemData[];
 }
 
+export type PreviewCollectionItemType = 'post' | 'page';
+
+export interface PreviewCollectionItemData {
+  type: PreviewCollectionItemType;
+  slug: string;
+}
+
+export interface PreviewCollectionData {
+  title?: string;
+  description?: string;
+  items: PreviewCollectionItemData[];
+}
+
 export interface PreviewCustomCssData {
   content: string;
 }
@@ -162,8 +175,9 @@ export interface PreviewDataV05 {
   generated_at: string;
   site: PreviewSiteData;
   content: PreviewContentData;
-  menus: Record<string, PreviewMenuData>;
-  widgets: Record<string, PreviewWidgetAreaData>;
+  menus?: Record<string, PreviewMenuData>;
+  widgets?: Record<string, PreviewWidgetAreaData>;
+  collections?: Record<string, PreviewCollectionData>;
   custom_css?: PreviewCustomCssData;
   custom_html?: PreviewCustomHtmlData;
 }
