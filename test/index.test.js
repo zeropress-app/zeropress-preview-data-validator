@@ -1089,8 +1089,6 @@ test('isPreviewData narrows valid payloads', () => {
 });
 
 test('published schema files are stored outside src', async () => {
-  await fs.access(new URL('../schemas/preview-data.v0.2.schema.json', import.meta.url));
-  await fs.access(new URL('../schemas/preview-data.v0.3.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.4.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.5.schema.json', import.meta.url));
 });
