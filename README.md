@@ -55,6 +55,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - `site.media_base_url` is required and must be either an empty string or an absolute URI
 - optional `site.media_delivery_mode` may be `none` or `media_domain`
 - optional `site.favicon` may carry `icon`, `svg`, `png`, and `apple_touch_icon` URLs for HTML head output
+- optional `site.expose_generator` controls whether generated HTML exposes the ZeroPress generator meta tag
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
 - comment rendering policy is carried as `site.disallow_comments`

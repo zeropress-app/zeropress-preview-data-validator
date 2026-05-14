@@ -40,6 +40,7 @@ export interface PreviewSiteData {
   media_base_url: string;
   media_delivery_mode?: PreviewMediaDeliveryMode;
   favicon?: PreviewSiteFaviconData;
+  expose_generator?: boolean;
   locale: string;
   posts_per_page: number;
   date_format: string;

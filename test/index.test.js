@@ -917,6 +917,30 @@ test('validatePreviewData accepts optional site.favicon entries', () => {
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData accepts optional site.expose_generator policy', () => {
+  const omitted = createValidPreviewData();
+  assert.equal(validatePreviewData(omitted).ok, true);
+
+  const exposed = createValidPreviewData();
+  exposed.site.expose_generator = true;
+  assert.equal(validatePreviewData(exposed).ok, true);
+
+  const hidden = createValidPreviewData();
+  hidden.site.expose_generator = false;
+  assert.equal(validatePreviewData(hidden).ok, true);
+});
+
+test('validatePreviewData rejects invalid site.expose_generator values', () => {
+  for (const value of ['false', 0, null]) {
+    const data = createValidPreviewData();
+    data.site.expose_generator = value;
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(getIssueAtPath(result, 'site.expose_generator')?.code, 'INVALID_SITE_EXPOSE_GENERATOR');
+  }
+});
+
 test('validatePreviewData rejects invalid site.favicon payloads', () => {
   const emptyFavicon = createValidPreviewData();
   emptyFavicon.site.favicon = {};

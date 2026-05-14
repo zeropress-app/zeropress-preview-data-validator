@@ -80,6 +80,7 @@ function validateSite(site, path, errors) {
     'media_base_url',
     'media_delivery_mode',
     'favicon',
+    'expose_generator',
     'locale',
     'posts_per_page',
     'date_format',
@@ -106,6 +107,9 @@ function validateSite(site, path, errors) {
   }
   if (site.favicon !== undefined) {
     validateSiteFavicon(site.favicon, `${path}.favicon`, errors);
+  }
+  if (site.expose_generator !== undefined) {
+    validateBoolean(site.expose_generator, `${path}.expose_generator`, 'INVALID_SITE_EXPOSE_GENERATOR', errors);
   }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.posts_per_page, `${path}.posts_per_page`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
@@ -805,7 +809,7 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'media_delivery_mode' || key === 'favicon' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'media_delivery_mode' || key === 'favicon' || key === 'expose_generator' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.favicon') {
     return key === 'icon' || key === 'svg' || key === 'png' || key === 'apple_touch_icon';

@@ -226,6 +226,12 @@
         "favicon": {
           "$ref": "#/$defs/siteFavicon"
         },
+        "expose_generator": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether generated HTML pages should include the ZeroPress generator meta tag. Missing or true exposes the generator; false omits it.",
+          "markdownDescription": "Whether generated HTML pages should include `<meta name=\"generator\" content=\"ZeroPress\">`. Missing or `true` exposes the generator; `false` omits it."
+        },
         "locale": {
           "type": "string",
           "minLength": 2
@@ -838,6 +844,7 @@
           "png": "/favicon.png",
           "apple_touch_icon": "/apple-touch-icon.png"
         },
+        "expose_generator": true,
         "locale": "en-US",
         "posts_per_page": 10,
         "date_format": "YYYY-MM-DD",
