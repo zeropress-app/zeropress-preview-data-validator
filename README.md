@@ -4,7 +4,7 @@
 ![license](https://img.shields.io/npm/l/%40zeropress%2Fpreview-data-validator)
 ![node](https://img.shields.io/node/v/%40zeropress%2Fpreview-data-validator)
 
-Shared validation core for ZeroPress preview data v0.5.
+Shared validation core for ZeroPress preview data v0.6.
 
 This package is the canonical runtime contract for preview payloads consumed by:
 
@@ -31,12 +31,12 @@ import {
 Schema export:
 
 ```js
-import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.5.schema.json';
+import schemaUrl from '@zeropress/preview-data-validator/preview-data.v0.6.schema.json';
 ```
 
 Published schema files are shipped from the package `schemas/` directory.
 
-`preview-data v0.5` is data-only:
+`preview-data v0.6` is data-only:
 
 - root `$schema` is optional and may be used as an editor/tooling hint
 - no `routes` block
@@ -52,12 +52,12 @@ Published schema files are shipped from the package `schemas/` directory.
 - `site.permalinks` may define URL/output policy for posts, pages, categories, and tags
 - pages may carry optional `path` for nested page URLs
 - pages, categories, and tags do not carry internal `id` fields
-- `site.mediaBaseUrl` is required and must be either an empty string or an absolute URI
-- optional `site.mediaDeliveryMode` may be `none` or `media_domain`
+- `site.media_base_url` is required and must be either an empty string or an absolute URI
+- optional `site.media_delivery_mode` may be `none` or `media_domain`
 - optional `site.favicon` may carry `icon`, `svg`, `png`, and `apple_touch_icon` URLs for HTML head output
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
-- comment rendering policy is carried as `site.disallowComments`
+- comment rendering policy is carried as `site.disallow_comments`
 - fallback `robots.txt` indexing policy may be carried as optional `site.indexing`
 - enabled menus may be exported in optional root `menus`
 - `menus` is keyed by stable `menu_id`
@@ -67,7 +67,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - enabled widget areas may be exported in optional root `widgets`
 - `widgets` is keyed by stable `widget_area_id`
 - widget items intentionally fix only the common shell: `type`, `title`, and optional `settings`
-- widget-type-specific `settings` structure is not enforced by this validator in v0.5
+- widget-type-specific `settings` structure is not enforced by this validator in v0.6
 - named page/post collections may be exported in optional root `collections`
 - `collections` is keyed by stable collection ids and contains ordered `{ type, slug }` item references
 - managed media metadata may be exported in optional `content.media[]`

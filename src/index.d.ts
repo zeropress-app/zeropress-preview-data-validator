@@ -37,15 +37,15 @@ export interface PreviewSiteData {
   title: string;
   description: string;
   url: string;
-  mediaBaseUrl: string;
-  mediaDeliveryMode?: PreviewMediaDeliveryMode;
+  media_base_url: string;
+  media_delivery_mode?: PreviewMediaDeliveryMode;
   favicon?: PreviewSiteFaviconData;
   locale: string;
-  postsPerPage: number;
-  dateFormat: string;
-  timeFormat: string;
+  posts_per_page: number;
+  date_format: string;
+  time_format: string;
   timezone: string;
-  disallowComments: boolean;
+  disallow_comments: boolean;
   indexing?: boolean;
   permalinks?: PreviewPermalinksData;
   front_page?: PreviewFrontPageData;
@@ -63,11 +63,7 @@ export interface PreviewSiteFaviconData {
 
 export interface PreviewSiteFooterData {
   copyright_text?: string;
-  attribution?: PreviewSiteFooterAttributionData;
-}
-
-export interface PreviewSiteFooterAttributionData {
-  enabled?: boolean;
+  attribution?: boolean;
 }
 
 export interface PreviewAuthorData {
@@ -187,9 +183,9 @@ export interface PreviewContentData {
   media?: PreviewMediaData[];
 }
 
-export interface PreviewDataV05 {
+export interface PreviewDataV06 {
   $schema?: string;
-  version: '0.5';
+  version: '0.6';
   generator: string;
   generated_at: string;
   site: PreviewSiteData;
@@ -207,8 +203,8 @@ export interface PreviewDataValidationResult {
   warnings: ValidationIssue[];
 }
 
-export const PREVIEW_DATA_VERSION: '0.5';
+export const PREVIEW_DATA_VERSION: '0.6';
 
 export function validatePreviewData(data: unknown): PreviewDataValidationResult;
 export function assertPreviewData<T>(data: T): T;
-export function isPreviewData(data: unknown): data is PreviewDataV05;
+export function isPreviewData(data: unknown): data is PreviewDataV06;

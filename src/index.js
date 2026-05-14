@@ -1,6 +1,6 @@
 import { SLUG_SEGMENT_ISSUE_CODES, validateSlugSegment as validateSharedSlugSegment } from '@zeropress/slug-policy';
 
-export const PREVIEW_DATA_VERSION = '0.5';
+export const PREVIEW_DATA_VERSION = '0.6';
 
 const PREVIEW_DOCUMENT_TYPES = ['plaintext', 'markdown', 'html'];
 const PREVIEW_MENU_ITEM_TYPES = ['custom', 'page', 'post', 'category'];
@@ -77,15 +77,15 @@ function validateSite(site, path, errors) {
     'title',
     'description',
     'url',
-    'mediaBaseUrl',
-    'mediaDeliveryMode',
+    'media_base_url',
+    'media_delivery_mode',
     'favicon',
     'locale',
-    'postsPerPage',
-    'dateFormat',
-    'timeFormat',
+    'posts_per_page',
+    'date_format',
+    'time_format',
     'timezone',
-    'disallowComments',
+    'disallow_comments',
     'indexing',
     'permalinks',
     'front_page',
@@ -100,19 +100,19 @@ function validateSite(site, path, errors) {
   validateNonEmptyString(site.title, `${path}.title`, 'INVALID_SITE_TITLE', errors);
   validateString(site.description, `${path}.description`, 'INVALID_SITE_DESCRIPTION', errors);
   validateSiteUri(site.url, `${path}.url`, 'INVALID_SITE_URL', errors);
-  validateSiteUri(site.mediaBaseUrl, `${path}.mediaBaseUrl`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
-  if (site.mediaDeliveryMode !== undefined) {
-    validateEnum(site.mediaDeliveryMode, `${path}.mediaDeliveryMode`, 'INVALID_SITE_MEDIA_DELIVERY_MODE', errors, PREVIEW_MEDIA_DELIVERY_MODES);
+  validateSiteUri(site.media_base_url, `${path}.media_base_url`, 'INVALID_SITE_MEDIA_BASE_URL', errors);
+  if (site.media_delivery_mode !== undefined) {
+    validateEnum(site.media_delivery_mode, `${path}.media_delivery_mode`, 'INVALID_SITE_MEDIA_DELIVERY_MODE', errors, PREVIEW_MEDIA_DELIVERY_MODES);
   }
   if (site.favicon !== undefined) {
     validateSiteFavicon(site.favicon, `${path}.favicon`, errors);
   }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
-  validateInteger(site.postsPerPage, `${path}.postsPerPage`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
-  validateNonEmptyString(site.dateFormat, `${path}.dateFormat`, 'INVALID_SITE_DATE_FORMAT', errors);
-  validateString(site.timeFormat, `${path}.timeFormat`, 'INVALID_SITE_TIME_FORMAT', errors);
+  validateInteger(site.posts_per_page, `${path}.posts_per_page`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
+  validateNonEmptyString(site.date_format, `${path}.date_format`, 'INVALID_SITE_DATE_FORMAT', errors);
+  validateString(site.time_format, `${path}.time_format`, 'INVALID_SITE_TIME_FORMAT', errors);
   validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
-  validateBoolean(site.disallowComments, `${path}.disallowComments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
+  validateBoolean(site.disallow_comments, `${path}.disallow_comments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
   if (site.indexing !== undefined) {
     validateBoolean(site.indexing, `${path}.indexing`, 'INVALID_SITE_INDEXING', errors);
   }
@@ -129,7 +129,6 @@ function validateSite(site, path, errors) {
     'site_description',
     'site_url',
     'metadata',
-    'media_delivery_mode',
     'media_delivery_base_url',
     'language',
     'siteLocale',
@@ -173,10 +172,7 @@ function validateSiteFooter(footer, path, errors) {
   }
 
   if (footer.attribution !== undefined) {
-    validateClosedObject(footer.attribution, `${path}.attribution`, errors, ['enabled']);
-    if (isObject(footer.attribution) && footer.attribution.enabled !== undefined) {
-      validateBoolean(footer.attribution.enabled, `${path}.attribution.enabled`, 'INVALID_SITE_FOOTER_ATTRIBUTION_ENABLED', errors);
-    }
+    validateBoolean(footer.attribution, `${path}.attribution`, 'INVALID_SITE_FOOTER_ATTRIBUTION', errors);
   }
 }
 
@@ -809,16 +805,13 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'mediaDeliveryMode' || key === 'favicon' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'media_delivery_mode' || key === 'favicon' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.favicon') {
     return key === 'icon' || key === 'svg' || key === 'png' || key === 'apple_touch_icon';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
-  }
-  if (path === 'site.footer.attribution') {
-    return key === 'enabled';
   }
   if (path === 'site.front_page') {
     return key === 'page_slug' || key === 'html';
@@ -899,7 +892,7 @@ function mapSlugValidationMessage(issueCode) {
 function rejectLegacyKeys(value, path, errors, keys, code) {
   for (const key of keys) {
     if (key in value) {
-      errors.push(issue(code, `${path}.${key}`, 'Legacy field is not allowed in preview-data v0.5'));
+      errors.push(issue(code, `${path}.${key}`, 'Legacy field is not allowed in preview-data v0.6'));
     }
   }
 }

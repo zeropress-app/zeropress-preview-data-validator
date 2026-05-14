@@ -17,13 +17,13 @@ function createValidPreviewData() {
       title: 'ZeroPress Preview',
       description: 'Preview contract fixture',
       url: 'https://example.com',
-      mediaBaseUrl: 'https://media.example.com',
+      media_base_url: 'https://media.example.com',
       locale: 'en-US',
-      postsPerPage: 10,
-      dateFormat: 'YYYY-MM-DD',
-      timeFormat: 'HH:mm',
+      posts_per_page: 10,
+      date_format: 'YYYY-MM-DD',
+      time_format: 'HH:mm',
       timezone: 'UTC',
-      disallowComments: false,
+      disallow_comments: false,
     },
     content: {
       authors: [
@@ -112,7 +112,7 @@ function getIssueAtPath(result, issuePath) {
   return result.errors.find((issue) => issue.path === issuePath);
 }
 
-test('validatePreviewData accepts a valid v0.5 payload', () => {
+test('validatePreviewData accepts a valid v0.6 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
@@ -120,7 +120,7 @@ test('validatePreviewData accepts a valid v0.5 payload', () => {
 
 test('validatePreviewData accepts optional root $schema editor hint', () => {
   const data = createValidPreviewData();
-  data.$schema = 'https://zeropress.dev/schemas/preview-data.v0.5.schema.json';
+  data.$schema = 'https://zeropress.dev/schemas/preview-data.v0.6.schema.json';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
@@ -198,7 +198,7 @@ test('validatePreviewData accepts optional permalinks and page path', () => {
     categories: '/categories/:slug/',
     tags: '/tags/:slug/',
   };
-  data.content.pages[0].path = 'spec/preview-data-v0.5';
+  data.content.pages[0].path = 'spec/preview-data-v0.6';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
@@ -713,7 +713,7 @@ test('validatePreviewData rejects duplicate author ids', () => {
   assert.equal(result.errors.some((issue) => issue.code === 'DUPLICATE_AUTHOR_ID'), true);
 });
 
-test('validatePreviewData rejects snake_case locale and timezone site keys', () => {
+test('validatePreviewData rejects legacy prefixed locale and timezone site keys', () => {
   const data = createValidPreviewData();
   data.site.site_timezone = 'UTC';
   data.site.site_locale = 'en_US';
@@ -724,7 +724,7 @@ test('validatePreviewData rejects snake_case locale and timezone site keys', () 
   assert.equal(result.errors.some((issue) => issue.path === 'site.site_locale'), true);
 });
 
-test('validatePreviewData rejects replaced preview-data v0.5 site keys', () => {
+test('validatePreviewData rejects legacy site keys replaced before v0.6', () => {
   const data = createValidPreviewData();
   data.site.language = 'en-US';
   data.site.siteLocale = 'en-US';
@@ -876,32 +876,32 @@ test('validatePreviewData allows relative author avatar and relative featured_im
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData accepts site.mediaBaseUrl', () => {
+test('validatePreviewData accepts site.media_base_url', () => {
   const data = createValidPreviewData();
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData accepts optional site.mediaDeliveryMode values', () => {
+test('validatePreviewData accepts optional site.media_delivery_mode values', () => {
   const data = createValidPreviewData();
-  data.site.mediaDeliveryMode = 'media_domain';
+  data.site.media_delivery_mode = 'media_domain';
 
   let result = validatePreviewData(data);
   assert.equal(result.ok, true);
 
-  data.site.mediaDeliveryMode = 'none';
+  data.site.media_delivery_mode = 'none';
   result = validatePreviewData(data);
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData rejects invalid site.mediaDeliveryMode', () => {
+test('validatePreviewData rejects invalid site.media_delivery_mode', () => {
   const data = createValidPreviewData();
-  data.site.mediaDeliveryMode = 'cloudflare';
+  data.site.media_delivery_mode = 'cloudflare';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(getIssueAtPath(result, 'site.mediaDeliveryMode')?.code, 'INVALID_SITE_MEDIA_DELIVERY_MODE');
+  assert.equal(getIssueAtPath(result, 'site.media_delivery_mode')?.code, 'INVALID_SITE_MEDIA_DELIVERY_MODE');
 });
 
 test('validatePreviewData accepts optional site.favicon entries', () => {
@@ -939,21 +939,21 @@ test('validatePreviewData rejects invalid site.favicon payloads', () => {
   assert.equal(invalidResult.errors.some((issue) => issue.path === 'site.favicon.shortcut_icon'), true);
 });
 
-test('validatePreviewData allows an empty string for site.mediaBaseUrl', () => {
+test('validatePreviewData allows an empty string for site.media_base_url', () => {
   const data = createValidPreviewData();
-  data.site.mediaBaseUrl = '';
+  data.site.media_base_url = '';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData rejects missing site.mediaBaseUrl', () => {
+test('validatePreviewData rejects missing site.media_base_url', () => {
   const data = createValidPreviewData();
-  delete data.site.mediaBaseUrl;
+  delete data.site.media_base_url;
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'site.mediaBaseUrl'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.media_base_url'), true);
 });
 
 test('validatePreviewData accepts optional content.media entries', () => {
@@ -1013,9 +1013,7 @@ test('validatePreviewData accepts optional site.footer display data', () => {
   const data = createValidPreviewData();
   data.site.footer = {
     copyright_text: 'Copyright 2026 Example Corp.',
-    attribution: {
-      enabled: false,
-    },
+    attribution: false,
   };
 
   const result = validatePreviewData(data);
@@ -1028,7 +1026,6 @@ test('validatePreviewData rejects invalid site.footer display data', () => {
     copyright_text: '',
     attribution: {
       enabled: 'false',
-      label: 'Published with',
     },
     extra: true,
   };
@@ -1036,8 +1033,7 @@ test('validatePreviewData rejects invalid site.footer display data', () => {
   const result = validatePreviewData(data);
   assert.equal(result.ok, false);
   assert.equal(result.errors.some((issue) => issue.path === 'site.footer.copyright_text'), true);
-  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.attribution.enabled'), true);
-  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.attribution.label'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'site.footer.attribution'), true);
   assert.equal(result.errors.some((issue) => issue.path === 'site.footer.extra'), true);
 });
 
@@ -1078,7 +1074,7 @@ test('validatePreviewData still rejects whitespace-only site.url', () => {
 
 test('assertPreviewData throws on invalid payload', () => {
   const data = createValidPreviewData();
-  data.version = '0.4';
+  data.version = '0.5';
 
   assert.throws(() => assertPreviewData(data), /INVALID_VERSION/);
 });
@@ -1091,4 +1087,5 @@ test('isPreviewData narrows valid payloads', () => {
 test('published schema files are stored outside src', async () => {
   await fs.access(new URL('../schemas/preview-data.v0.4.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.5.schema.json', import.meta.url));
+  await fs.access(new URL('../schemas/preview-data.v0.6.schema.json', import.meta.url));
 });

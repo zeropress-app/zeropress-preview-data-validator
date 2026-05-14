@@ -1,0 +1,989 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zeropress.dev/schemas/preview-data.v0.6.schema.json",
+  "title": "ZeroPress Theme Preview Data v0.6",
+  "description": "ZeroPress theme preview payload. v0.6 is data-only and may include optional menus, widget areas, and named collections for themes.",
+  "markdownDescription": "ZeroPress theme preview payload. `v0.6` is data-only and may include optional menus, widget areas, and named collections for themes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "generator", "generated_at", "site", "content"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value.",
+      "markdownDescription": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value."
+    },
+    "version": {
+      "const": "0.6",
+      "description": "Preview-data contract version.",
+      "markdownDescription": "Preview-data contract version."
+    },
+    "generator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the generator that produced this payload.",
+      "markdownDescription": "Identifier of the generator that produced this payload."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the payload was generated.",
+      "markdownDescription": "UTC timestamp when the payload was generated."
+    },
+    "site": {
+      "$ref": "#/$defs/site"
+    },
+    "content": {
+      "$ref": "#/$defs/content"
+    },
+    "menus": {
+      "$ref": "#/$defs/menus"
+    },
+    "widgets": {
+      "$ref": "#/$defs/widgets"
+    },
+    "collections": {
+      "$ref": "#/$defs/collections"
+    },
+    "custom_css": {
+      "$ref": "#/$defs/customCss"
+    },
+    "custom_html": {
+      "$ref": "#/$defs/customHtml"
+    }
+  },
+  "$defs": {
+    "slugSegment": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A single safe URL path segment. Unicode is allowed, but path separators, percent-encoding, control characters, whitespace-only values, and reserved dot segments are not.",
+      "markdownDescription": "A single safe URL path segment. Unicode is allowed, but path separators, percent-encoding, control characters, whitespace-only values, and reserved dot segments are not.",
+      "pattern": "^(?!\\.{1,2}$)(?!.*[%/\\\\\\s\\u0000-\\u001F\\u007F]).+$"
+    },
+    "previewMeta": {
+      "type": "object",
+      "description": "Generator-defined optional metadata for site/theme conventions. ZeroPress core does not interpret metadata keys.",
+      "markdownDescription": "Generator-defined optional metadata for site/theme conventions. ZeroPress core does not interpret metadata keys.",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    },
+    "permalinks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site permalink policy used by build tooling to derive public URLs and output paths.",
+      "markdownDescription": "Optional site permalink policy used by build tooling to derive public URLs and output paths.",
+      "properties": {
+        "output_style": {
+          "type": "string",
+          "enum": ["directory", "html-extension"]
+        },
+        "posts": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "pages": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "categories": {
+          "$ref": "#/$defs/permalinkPattern"
+        },
+        "tags": {
+          "$ref": "#/$defs/permalinkPattern"
+        }
+      }
+    },
+    "permalinkPattern": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute URL path pattern using full-segment tokens such as :slug or :public_id. Literal .html suffixes are not part of v0.6.",
+      "markdownDescription": "Absolute URL path pattern using full-segment tokens such as `:slug` or `:public_id`. Literal `.html` suffixes are not part of `v0.6`."
+    },
+    "frontPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional root front page selection policy.",
+      "markdownDescription": "Optional root front page selection policy.",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["theme_index", "page", "standalone_html"],
+          "description": "Front page source type.",
+          "markdownDescription": "Front page source type."
+        },
+        "page_slug": {
+          "$ref": "#/$defs/slugSegment",
+          "description": "Page slug used when type is page.",
+          "markdownDescription": "Page slug used when `type` is `page`."
+        },
+        "html": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trusted full HTML used when type is standalone_html.",
+          "markdownDescription": "Trusted full HTML used when `type` is `standalone_html`."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "page" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["page_slug"] }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "standalone_html" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["html"] }
+        }
+      ]
+    },
+    "post_index": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional post index generation policy.",
+      "markdownDescription": "Optional post index generation policy.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the site requests a post index route.",
+          "markdownDescription": "Whether the site requests a post index route."
+        },
+        "path": {
+          "$ref": "#/$defs/post_index_path"
+        },
+        "paginate": {
+          "type": "boolean",
+          "description": "Whether the post index should generate page 2+ routes.",
+          "markdownDescription": "Whether the post index should generate page 2+ routes."
+        }
+      }
+    },
+    "post_index_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute public path for the post index route. Use / for the site root.",
+      "markdownDescription": "Absolute public path for the post index route. Use `/` for the site root.",
+      "pattern": "^/(?!.*//)(?!.*[%\\\\\\s\\u0000-\\u001F\\u007F?#!]).*$",
+      "not": {
+        "anyOf": [
+          { "pattern": "(^|/)\\.{1,2}(/|$)" },
+          { "pattern": "\\.html(/|$)" }
+        ]
+      }
+    },
+    "pagePath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional relative page route path. No leading or trailing slash; each segment follows the slug segment policy.",
+      "markdownDescription": "Optional relative page route path. No leading or trailing slash; each segment follows the slug segment policy.",
+      "pattern": "^(?!/)(?!.*//)(?!.*[%\\\\\\s\\u0000-\\u001F\\u007F]).*[^/]$"
+    },
+    "site": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "url",
+        "media_base_url",
+        "locale",
+        "posts_per_page",
+        "date_format",
+        "time_format",
+        "timezone",
+        "disallow_comments"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "anyOf": [
+            { "const": "" },
+            { "format": "uri" }
+          ]
+        },
+        "media_base_url": {
+          "type": "string",
+          "anyOf": [
+            { "const": "" },
+            { "format": "uri" }
+          ]
+        },
+        "media_delivery_mode": {
+          "type": "string",
+          "enum": ["none", "media_domain"],
+          "description": "Optional media delivery capability. media_domain means media URLs under site.media_base_url support ZeroPress image variant query parameters.",
+          "markdownDescription": "Optional media delivery capability. `media_domain` means media URLs under `site.media_base_url` support ZeroPress image variant query parameters."
+        },
+        "favicon": {
+          "$ref": "#/$defs/siteFavicon"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 2
+        },
+        "posts_per_page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "date_format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_format": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disallow_comments": {
+          "type": "boolean"
+        },
+        "indexing": {
+          "type": "boolean",
+          "description": "Optional fallback robots.txt indexing policy. Missing or true allows indexing in the generated fallback robots.txt; false disallows all agents in the fallback robots.txt.",
+          "markdownDescription": "Optional fallback `robots.txt` indexing policy. Missing or `true` allows indexing in the generated fallback `robots.txt`; `false` disallows all agents in the fallback `robots.txt`."
+        },
+        "permalinks": {
+          "$ref": "#/$defs/permalinks"
+        },
+        "front_page": {
+          "$ref": "#/$defs/frontPage"
+        },
+        "post_index": {
+          "$ref": "#/$defs/post_index"
+        },
+        "footer": {
+          "$ref": "#/$defs/siteFooter"
+        },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "siteFavicon": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site favicon links for HTML head output.",
+      "markdownDescription": "Optional site favicon links for HTML `<head>` output.",
+      "anyOf": [
+        { "required": ["icon"] },
+        { "required": ["svg"] },
+        { "required": ["png"] },
+        { "required": ["apple_touch_icon"] }
+      ],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ICO or generic favicon URL/path.",
+          "markdownDescription": "ICO or generic favicon URL/path."
+        },
+        "svg": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SVG favicon URL/path.",
+          "markdownDescription": "SVG favicon URL/path."
+        },
+        "png": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PNG favicon URL/path.",
+          "markdownDescription": "PNG favicon URL/path."
+        },
+        "apple_touch_icon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Apple touch icon URL/path.",
+          "markdownDescription": "Apple touch icon URL/path."
+        }
+      }
+    },
+    "siteFooter": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site footer display data for themes.",
+      "markdownDescription": "Optional site footer display data for themes.",
+      "properties": {
+        "copyright_text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Theme-facing footer copyright or legal text. ZeroPress does not add a copyright symbol automatically.",
+          "markdownDescription": "Theme-facing footer copyright or legal text. ZeroPress does not add a copyright symbol automatically."
+        },
+        "attribution": {
+          "type": "boolean",
+          "description": "When false, themes that support ZeroPress attribution should hide it. Missing or true means attribution may be shown.",
+          "markdownDescription": "When `false`, themes that support ZeroPress attribution should hide it. Missing or `true` means attribution may be shown."
+        }
+      }
+    },
+    "author": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "display_name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "avatar": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src", "width", "height"],
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Managed media source URL or path. Matches existing media fields such as featured_image or avatar after renderer normalization.",
+          "markdownDescription": "Managed media source URL or path. Matches existing media fields such as `featured_image` or `avatar` after renderer normalization."
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
+    },
+    "post": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "public_id",
+        "title",
+        "slug",
+        "content",
+        "document_type",
+        "excerpt",
+        "published_at_iso",
+        "updated_at_iso",
+        "author_id",
+        "status",
+        "allow_comments",
+        "category_slugs",
+        "tag_slugs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "public_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        },
+        "content": {
+          "type": "string"
+        },
+        "document_type": {
+          "type": "string",
+          "enum": ["plaintext", "markdown", "html"]
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "published_at_iso": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at_iso": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "author_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "featured_image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft"]
+        },
+        "allow_comments": {
+          "type": "boolean"
+        },
+        "category_slugs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slugSegment"
+          }
+        },
+        "tag_slugs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slugSegment"
+          }
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "slug", "content", "document_type", "status"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        },
+        "path": {
+          "$ref": "#/$defs/pagePath"
+        },
+        "content": {
+          "type": "string"
+        },
+        "document_type": {
+          "type": "string",
+          "enum": ["plaintext", "markdown", "html"]
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "featured_image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/previewMeta"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft"]
+        }
+      }
+    },
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "menuItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "url", "type", "target", "children"],
+      "description": "Theme-facing navigation item. Children may be nested to any depth.",
+      "markdownDescription": "Theme-facing navigation item. `children` may be nested to any depth.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display title shown by the theme.",
+          "markdownDescription": "Display title shown by the theme."
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolved absolute URI or safe relative path.",
+          "markdownDescription": "Resolved absolute URI or safe relative path."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["custom", "page", "post", "category"],
+          "description": "Origin type of the menu item.",
+          "markdownDescription": "Origin type of the menu item."
+        },
+        "target": {
+          "type": "string",
+          "enum": ["_self", "_blank"],
+          "description": "Link target semantics for the theme.",
+          "markdownDescription": "Link target semantics for the theme."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Nested child menu items.",
+          "markdownDescription": "Nested child menu items."
+        }
+      }
+    },
+    "menu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "items"],
+      "description": "A named enabled menu exported to themes under its menu_id key.",
+      "markdownDescription": "A named enabled menu exported to themes under its `menu_id` key.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable menu name for development and diagnostics.",
+          "markdownDescription": "Human-readable menu name for development and diagnostics."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Resolved menu tree after omission of missing references.",
+          "markdownDescription": "Resolved menu tree after omission of missing references."
+        }
+      }
+    },
+    "widgetItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title"],
+      "description": "Theme-facing widget item shell. Widget-type-specific settings are intentionally left open in v0.6.",
+      "markdownDescription": "Theme-facing widget item shell. Widget-type-specific `settings` are intentionally left open in `v0.6`.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable widget item type identifier.",
+          "markdownDescription": "Stable widget item type identifier."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display title shown by the theme.",
+          "markdownDescription": "Display title shown by the theme."
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Widget-type-specific settings payload. This object is intentionally schema-light in v0.6.",
+          "markdownDescription": "Widget-type-specific settings payload. This object is intentionally schema-light in `v0.6`."
+        }
+      }
+    },
+    "widgetArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "items"],
+      "description": "A named enabled widget area exported to themes under its widget_area_id key.",
+      "markdownDescription": "A named enabled widget area exported to themes under its `widget_area_id` key.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable widget area name for development and diagnostics.",
+          "markdownDescription": "Human-readable widget area name for development and diagnostics."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/widgetItem"
+          },
+          "description": "Resolved widget item list after omission of disabled or missing-reference items.",
+          "markdownDescription": "Resolved widget item list after omission of disabled or missing-reference items."
+        }
+      }
+    },
+    "widgets": {
+      "type": "object",
+      "default": {},
+      "description": "Enabled widget areas keyed by widget_area_id. Disabled widget areas are omitted.",
+      "markdownDescription": "Enabled widget areas keyed by `widget_area_id`. Disabled widget areas are omitted.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable external widget area identifier.",
+        "markdownDescription": "Stable external `widget_area_id` identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/widgetArea"
+      }
+    },
+    "collectionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "slug"],
+      "description": "A reference to a page or post included in a named collection.",
+      "markdownDescription": "A reference to a page or post included in a named collection.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["post", "page"],
+          "description": "Referenced content type.",
+          "markdownDescription": "Referenced content type."
+        },
+        "slug": {
+          "$ref": "#/$defs/slugSegment"
+        }
+      }
+    },
+    "collection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items"],
+      "description": "A named curated content list exported to themes under its collection id.",
+      "markdownDescription": "A named curated content list exported to themes under its collection id.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional display title for the collection.",
+          "markdownDescription": "Optional display title for the collection."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional helper text for the collection.",
+          "markdownDescription": "Optional helper text for the collection."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/collectionItem"
+          }
+        }
+      }
+    },
+    "collections": {
+      "type": "object",
+      "default": {},
+      "description": "Named curated content lists keyed by collection id.",
+      "markdownDescription": "Named curated content lists keyed by collection id.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable collection identifier.",
+        "markdownDescription": "Stable collection identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/collection"
+      }
+    },
+    "customCss": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content"],
+      "description": "Optional site-level custom stylesheet input.",
+      "markdownDescription": "Optional site-level custom stylesheet input.",
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Raw CSS source to be consumed by build tooling.",
+          "markdownDescription": "Raw CSS source to be consumed by build tooling."
+        }
+      }
+    },
+    "customHtml": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["head_end"] },
+        { "required": ["body_end"] }
+      ],
+      "description": "Optional trusted site-level HTML injection slots.",
+      "markdownDescription": "Optional trusted site-level HTML injection slots. ZeroPress does not sanitize or interpret the HTML content.",
+      "properties": {
+        "head_end": {
+          "$ref": "#/$defs/customHtmlSlot"
+        },
+        "body_end": {
+          "$ref": "#/$defs/customHtmlSlot"
+        }
+      }
+    },
+    "customHtmlSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content"],
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trusted raw HTML inserted into the target slot by build tooling.",
+          "markdownDescription": "Trusted raw HTML inserted into the target slot by build tooling."
+        }
+      }
+    },
+    "menus": {
+      "type": "object",
+      "default": {},
+      "description": "Enabled menus keyed by menu_id. Disabled menus and absent menu_ids are omitted.",
+      "markdownDescription": "Enabled menus keyed by `menu_id`. Disabled menus and absent `menu_id`s are omitted.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "description": "Stable external menu identifier.",
+        "markdownDescription": "Stable external `menu_id` identifier."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/menu"
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authors", "posts", "pages", "categories", "tags"],
+      "properties": {
+        "authors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/author"
+          }
+        },
+        "posts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/post"
+          }
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/page"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/category"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tag"
+          }
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/media"
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$schema": "https://zeropress.dev/schemas/preview-data.v0.6.schema.json",
+      "version": "0.6",
+      "generator": "example-generator",
+      "generated_at": "2026-05-09T00:00:00Z",
+      "site": {
+        "title": "Example Magazine",
+        "description": "A ZeroPress example site.",
+        "url": "https://example.com",
+        "media_base_url": "https://media.example.com",
+        "media_delivery_mode": "media_domain",
+        "favicon": {
+          "icon": "/favicon.ico",
+          "svg": "/favicon.svg",
+          "png": "/favicon.png",
+          "apple_touch_icon": "/apple-touch-icon.png"
+        },
+        "locale": "en-US",
+        "posts_per_page": 10,
+        "date_format": "YYYY-MM-DD",
+        "time_format": "HH:mm",
+        "timezone": "UTC",
+        "disallow_comments": false,
+        "indexing": true,
+        "front_page": {
+          "type": "theme_index"
+        },
+        "post_index": {
+          "enabled": true,
+          "path": "/",
+          "paginate": true
+        },
+        "footer": {
+          "copyright_text": "Example Magazine",
+          "attribution": true
+        },
+        "meta": {
+          "issue": "Spring 2026",
+          "show_sponsor_banner": false
+        }
+      },
+      "content": {
+        "authors": [
+          {
+            "id": "editor",
+            "display_name": "Example Editor",
+            "avatar": "/avatars/editor.jpg"
+          }
+        ],
+        "posts": [
+          {
+            "public_id": 1,
+            "title": "Hello ZeroPress",
+            "slug": "hello-zeropress",
+            "content": "# Hello ZeroPress\n\nWelcome to the example post.",
+            "document_type": "markdown",
+            "excerpt": "Welcome to the example post.",
+            "published_at_iso": "2026-05-09T00:00:00Z",
+            "updated_at_iso": "2026-05-09T00:00:00Z",
+            "author_id": "editor",
+            "featured_image": "/images/hello.jpg",
+            "meta": {
+              "badge": "Feature"
+            },
+            "status": "published",
+            "allow_comments": true,
+            "category_slugs": ["news"],
+            "tag_slugs": ["intro"]
+          }
+        ],
+        "pages": [
+          {
+            "title": "About",
+            "slug": "about",
+            "content": "# About\n\nAbout this site.",
+            "document_type": "markdown",
+            "excerpt": "About this site.",
+            "meta": {
+              "nav_label": "About"
+            },
+            "status": "published"
+          }
+        ],
+        "categories": [
+          {
+            "name": "News",
+            "slug": "news",
+            "description": "Site news and updates."
+          }
+        ],
+        "tags": [
+          {
+            "name": "Intro",
+            "slug": "intro",
+            "description": "Introductory content."
+          }
+        ],
+        "media": [
+          {
+            "src": "/avatars/editor.jpg",
+            "width": 512,
+            "height": 512,
+            "alt": "Example Editor"
+          },
+          {
+            "src": "/images/hello.jpg",
+            "width": 1600,
+            "height": 900,
+            "alt": "Hello ZeroPress cover image"
+          }
+        ]
+      },
+      "menus": {
+        "primary": {
+          "name": "Primary Menu",
+          "items": [
+            {
+              "title": "Home",
+              "url": "/",
+              "type": "custom",
+              "target": "_self",
+              "children": []
+            },
+            {
+              "title": "About",
+              "url": "/about/",
+              "type": "page",
+              "target": "_self",
+              "children": []
+            }
+          ]
+        }
+      },
+      "widgets": {
+        "sidebar": {
+          "name": "Sidebar",
+          "items": [
+            {
+              "type": "text",
+              "title": "About This Site",
+              "settings": {
+                "body": "A short reusable widget example."
+              }
+            }
+          ]
+        }
+      },
+      "collections": {
+        "cover-story": {
+          "title": "Cover Story",
+          "description": "Curated content for a featured area.",
+          "items": [
+            {
+              "type": "post",
+              "slug": "hello-zeropress"
+            },
+            {
+              "type": "page",
+              "slug": "about"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
