@@ -2,6 +2,8 @@ export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
 export type PreviewMetaValue = string | number | boolean | null;
 export type PreviewMediaDeliveryMode = 'none' | 'media_domain';
+export type PreviewDatetimeDisplay = 'static' | 'client';
+export type PreviewDatetimeStyle = 'none' | 'short' | 'medium' | 'long' | 'full';
 export type PreviewPermalinkOutputStyle = 'directory' | 'html-extension';
 
 export interface PreviewPermalinksData {
@@ -43,8 +45,9 @@ export interface PreviewSiteData {
   expose_generator?: boolean;
   locale: string;
   posts_per_page: number;
-  date_format: string;
-  time_format: string;
+  datetime_display: PreviewDatetimeDisplay;
+  date_style: PreviewDatetimeStyle;
+  time_style: PreviewDatetimeStyle;
   timezone: string;
   disallow_comments: boolean;
   indexing?: boolean;

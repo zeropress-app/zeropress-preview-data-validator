@@ -20,8 +20,9 @@ function createValidPreviewData() {
       media_base_url: 'https://media.example.com',
       locale: 'en-US',
       posts_per_page: 10,
-      date_format: 'YYYY-MM-DD',
-      time_format: 'HH:mm',
+      datetime_display: 'static',
+      date_style: 'medium',
+      time_style: 'none',
       timezone: 'UTC',
       disallow_comments: false,
     },
@@ -116,6 +117,46 @@ test('validatePreviewData accepts a valid v0.6 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData accepts supported datetime display and style values', () => {
+  const client = createValidPreviewData();
+  client.site.datetime_display = 'client';
+  client.site.date_style = 'full';
+  client.site.time_style = 'short';
+
+  const empty = createValidPreviewData();
+  empty.site.date_style = 'none';
+  empty.site.time_style = 'none';
+
+  assert.equal(validatePreviewData(client).ok, true);
+  assert.equal(validatePreviewData(empty).ok, true);
+});
+
+test('validatePreviewData rejects invalid datetime display and style values', () => {
+  const data = createValidPreviewData();
+  data.site.datetime_display = 'browser';
+  data.site.date_style = 'YYYY-MM-DD';
+  data.site.time_style = 'HH:mm';
+
+  const result = validatePreviewData(data);
+
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'site.datetime_display')?.code, 'INVALID_SITE_DATETIME_DISPLAY');
+  assert.equal(getIssueAtPath(result, 'site.date_style')?.code, 'INVALID_SITE_DATE_STYLE');
+  assert.equal(getIssueAtPath(result, 'site.time_style')?.code, 'INVALID_SITE_TIME_STYLE');
+});
+
+test('validatePreviewData rejects old v0.6 date_format and time_format fields', () => {
+  const data = createValidPreviewData();
+  data.site.date_format = 'YYYY-MM-DD';
+  data.site.time_format = 'HH:mm';
+
+  const result = validatePreviewData(data);
+
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'site.date_format')?.code, 'UNKNOWN_PROPERTY');
+  assert.equal(getIssueAtPath(result, 'site.time_format')?.code, 'UNKNOWN_PROPERTY');
 });
 
 test('validatePreviewData accepts optional root $schema editor hint', () => {

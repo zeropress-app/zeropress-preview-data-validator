@@ -190,8 +190,9 @@
         "media_base_url",
         "locale",
         "posts_per_page",
-        "date_format",
-        "time_format",
+        "datetime_display",
+        "date_style",
+        "time_style",
         "timezone",
         "disallow_comments"
       ],
@@ -240,12 +241,23 @@
           "type": "integer",
           "minimum": 1
         },
-        "date_format": {
+        "datetime_display": {
           "type": "string",
-          "minLength": 1
+          "enum": ["static", "client"],
+          "description": "Theme-facing datetime display preference. static uses build-generated fallback strings; client allows themes to progressively enhance time elements in JavaScript.",
+          "markdownDescription": "Theme-facing datetime display preference. `static` uses build-generated fallback strings; `client` allows themes to progressively enhance `<time>` elements in JavaScript."
         },
-        "time_format": {
-          "type": "string"
+        "date_style": {
+          "type": "string",
+          "enum": ["none", "short", "medium", "long", "full"],
+          "description": "Date style preset based on Intl.DateTimeFormat dateStyle. Use none to omit the date portion.",
+          "markdownDescription": "Date style preset based on `Intl.DateTimeFormat` `dateStyle`. Use `none` to omit the date portion."
+        },
+        "time_style": {
+          "type": "string",
+          "enum": ["none", "short", "medium", "long", "full"],
+          "description": "Time style preset based on Intl.DateTimeFormat timeStyle. Use none to omit the time portion.",
+          "markdownDescription": "Time style preset based on `Intl.DateTimeFormat` `timeStyle`. Use `none` to omit the time portion."
         },
         "timezone": {
           "type": "string",
@@ -847,8 +859,9 @@
         "expose_generator": true,
         "locale": "en-US",
         "posts_per_page": 10,
-        "date_format": "YYYY-MM-DD",
-        "time_format": "HH:mm",
+        "datetime_display": "static",
+        "date_style": "medium",
+        "time_style": "none",
         "timezone": "UTC",
         "disallow_comments": false,
         "indexing": true,

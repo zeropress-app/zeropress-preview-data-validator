@@ -58,6 +58,8 @@ Published schema files are shipped from the package `schemas/` directory.
 - optional `site.expose_generator` controls whether generated HTML exposes the ZeroPress generator meta tag
 - site locale is carried as `site.locale`
 - site timezone is carried as `site.timezone`
+- datetime display preference is carried as `site.datetime_display`
+- fallback datetime formatting uses `site.date_style` and `site.time_style` Intl style presets
 - comment rendering policy is carried as `site.disallow_comments`
 - fallback `robots.txt` indexing policy may be carried as optional `site.indexing`
 - enabled menus may be exported in optional root `menus`

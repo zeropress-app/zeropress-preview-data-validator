@@ -10,6 +10,8 @@ const PREVIEW_WIDGET_AREA_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_COLLECTION_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const PREVIEW_COLLECTION_ITEM_TYPES = ['post', 'page'];
 const PREVIEW_MEDIA_DELIVERY_MODES = ['none', 'media_domain'];
+const PREVIEW_DATETIME_DISPLAY_MODES = ['static', 'client'];
+const PREVIEW_DATETIME_STYLES = ['none', 'short', 'medium', 'long', 'full'];
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
 const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
@@ -83,8 +85,9 @@ function validateSite(site, path, errors) {
     'expose_generator',
     'locale',
     'posts_per_page',
-    'date_format',
-    'time_format',
+    'datetime_display',
+    'date_style',
+    'time_style',
     'timezone',
     'disallow_comments',
     'indexing',
@@ -113,8 +116,9 @@ function validateSite(site, path, errors) {
   }
   validateNonEmptyString(site.locale, `${path}.locale`, 'INVALID_SITE_LOCALE', errors);
   validateInteger(site.posts_per_page, `${path}.posts_per_page`, 'INVALID_SITE_POSTS_PER_PAGE', errors, { minimum: 1 });
-  validateNonEmptyString(site.date_format, `${path}.date_format`, 'INVALID_SITE_DATE_FORMAT', errors);
-  validateString(site.time_format, `${path}.time_format`, 'INVALID_SITE_TIME_FORMAT', errors);
+  validateEnum(site.datetime_display, `${path}.datetime_display`, 'INVALID_SITE_DATETIME_DISPLAY', errors, PREVIEW_DATETIME_DISPLAY_MODES);
+  validateEnum(site.date_style, `${path}.date_style`, 'INVALID_SITE_DATE_STYLE', errors, PREVIEW_DATETIME_STYLES);
+  validateEnum(site.time_style, `${path}.time_style`, 'INVALID_SITE_TIME_STYLE', errors, PREVIEW_DATETIME_STYLES);
   validateNonEmptyString(site.timezone, `${path}.timezone`, 'INVALID_SITE_TIMEZONE', errors);
   validateBoolean(site.disallow_comments, `${path}.disallow_comments`, 'INVALID_SITE_DISALLOW_COMMENTS', errors);
   if (site.indexing !== undefined) {
