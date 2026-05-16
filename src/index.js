@@ -15,6 +15,10 @@ const PREVIEW_DATETIME_STYLES = ['none', 'short', 'medium', 'long', 'full'];
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
 const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
+const PREVIEW_DATA_KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*$/;
+const PREVIEW_DATA_MAX_DEPTH = 4;
+const PREVIEW_DATA_MAX_KEYS = 64;
+const PREVIEW_DATA_MAX_ARRAY_LENGTH = 256;
 const PREVIEW_PERMALINK_TOKENS = Object.freeze({
   posts: new Set(['slug', 'public_id', 'year', 'month', 'day']),
   pages: new Set(['slug']),
@@ -481,6 +485,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
     'author_id',
     'featured_image',
     'meta',
+    'data',
     'status',
     'allow_comments',
     'category_slugs',
@@ -508,6 +513,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
     validateUrlLike(post.featured_image, `${path}.featured_image`, 'INVALID_POST_FEATURED_IMAGE', errors);
   }
   validatePreviewMeta(post.meta, `${path}.meta`, errors);
+  validatePreviewStructuredData(post.data, `${path}.data`, errors);
 
   if (typeof post.author_id === 'string' && post.author_id.trim() !== '' && !authorIds.has(post.author_id)) {
     errors.push(issue('INVALID_POST_AUTHOR_REFERENCE', `${path}.author_id`, 'Referenced author_id does not exist'));
@@ -515,7 +521,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'status']);
+  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'data', 'status']);
   if (!isObject(page)) {
     return;
   }
@@ -532,6 +538,7 @@ function validatePreviewPage(page, path, errors) {
     validateUrlLike(page.featured_image, `${path}.featured_image`, 'INVALID_PAGE_FEATURED_IMAGE', errors);
   }
   validatePreviewMeta(page.meta, `${path}.meta`, errors);
+  validatePreviewStructuredData(page.data, `${path}.data`, errors);
   validateEnum(page.status, `${path}.status`, 'INVALID_PAGE_STATUS', errors, ['published', 'draft']);
 }
 
@@ -550,6 +557,76 @@ function validatePreviewMeta(meta, path, errors) {
     }
     errors.push(issue('INVALID_META_VALUE', `${path}.${key}`, 'meta values must be strings, numbers, booleans, or null'));
   }
+}
+
+function validatePreviewStructuredData(data, path, errors) {
+  if (data === undefined) {
+    return;
+  }
+  if (!isObject(data)) {
+    errors.push(issue('INVALID_DATA', path, 'data must be an object'));
+    return;
+  }
+
+  validatePreviewDataObject(data, path, errors, 0);
+}
+
+function validatePreviewDataValue(value, path, errors, depth) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
+    return;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      errors.push(issue('INVALID_DATA_VALUE', path, 'data numbers must be finite'));
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    validatePreviewDataArray(value, path, errors, depth);
+    return;
+  }
+  if (isObject(value)) {
+    validatePreviewDataObject(value, path, errors, depth);
+    return;
+  }
+
+  errors.push(issue('INVALID_DATA_VALUE', path, 'data values must be JSON-safe strings, numbers, booleans, null, arrays, or objects'));
+}
+
+function validatePreviewDataObject(object, path, errors, depth) {
+  if (depth > PREVIEW_DATA_MAX_DEPTH) {
+    errors.push(issue('INVALID_DATA_DEPTH', path, `data nesting must not exceed ${PREVIEW_DATA_MAX_DEPTH} container levels`));
+    return;
+  }
+
+  const entries = Object.entries(object);
+  if (entries.length > PREVIEW_DATA_MAX_KEYS) {
+    errors.push(issue('INVALID_DATA_OBJECT_SIZE', path, `data objects must not contain more than ${PREVIEW_DATA_MAX_KEYS} keys`));
+  }
+
+  for (const [key, value] of entries) {
+    const childPath = `${path}.${key}`;
+    if (!PREVIEW_DATA_KEY_PATTERN.test(key)) {
+      errors.push(issue('INVALID_DATA_KEY', childPath, 'data keys must be valid template path segments'));
+      continue;
+    }
+    validatePreviewDataValue(value, childPath, errors, depth + 1);
+  }
+}
+
+function validatePreviewDataArray(array, path, errors, depth) {
+  if (depth > PREVIEW_DATA_MAX_DEPTH) {
+    errors.push(issue('INVALID_DATA_DEPTH', path, `data nesting must not exceed ${PREVIEW_DATA_MAX_DEPTH} container levels`));
+    return;
+  }
+
+  if (array.length > PREVIEW_DATA_MAX_ARRAY_LENGTH) {
+    errors.push(issue('INVALID_DATA_ARRAY_SIZE', path, `data arrays must not contain more than ${PREVIEW_DATA_MAX_ARRAY_LENGTH} items`));
+  }
+
+  array.forEach((value, index) => {
+    validatePreviewDataValue(value, `${path}[${index}]`, errors, depth + 1);
+  });
 }
 
 function validatePermalinks(permalinks, path, errors) {
@@ -846,10 +923,10 @@ function isOptionalKey(path, key) {
     return key === 'title' || key === 'description';
   }
   if (path.startsWith('content.posts[')) {
-    return key === 'id' || key === 'featured_image' || key === 'meta';
+    return key === 'id' || key === 'featured_image' || key === 'meta' || key === 'data';
   }
   if (path.startsWith('content.pages[')) {
-    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'meta';
+    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'meta' || key === 'data';
   }
   if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
     return key === 'description';

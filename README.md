@@ -49,6 +49,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - post `public_id` values are positive unique integers
 - body source is carried as raw `content` with explicit `document_type`
 - `site`, posts, and pages may carry optional generator-defined scalar metadata in `meta`
+- posts and pages may carry optional structured JSON content in `data` for repeated theme UI blocks
 - `site.permalinks` may define URL/output policy for posts, pages, categories, and tags
 - pages may carry optional `path` for nested page URLs
 - pages, categories, and tags do not carry internal `id` fields

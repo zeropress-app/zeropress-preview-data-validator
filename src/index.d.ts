@@ -1,6 +1,13 @@
 export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
 export type PreviewMetaValue = string | number | boolean | null;
+export type PreviewStructuredDataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | PreviewStructuredDataValue[]
+  | { [key: string]: PreviewStructuredDataValue };
 export type PreviewMediaDeliveryMode = 'none' | 'media_domain';
 export type PreviewDatetimeDisplay = 'static' | 'client';
 export type PreviewDatetimeStyle = 'none' | 'short' | 'medium' | 'long' | 'full';
@@ -96,6 +103,7 @@ export interface PreviewPostData {
   author_id: string;
   featured_image?: string;
   meta?: Record<string, PreviewMetaValue>;
+  data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;
   allow_comments: boolean;
   category_slugs: string[];
@@ -110,6 +118,7 @@ export interface PreviewPageData {
   excerpt?: string;
   featured_image?: string;
   meta?: Record<string, PreviewMetaValue>;
+  data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;
 }
 

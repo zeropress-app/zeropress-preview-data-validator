@@ -230,6 +230,67 @@ test('validatePreviewData rejects nested post and page meta values', () => {
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].meta.list'), true);
 });
 
+test('validatePreviewData accepts structured data on posts and pages', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].data = {
+    eyebrow: 'Selected Work',
+    stack: ['ZeroPress', 'Cloudflare'],
+    facts: [
+      { label: 'Role', value: 'Design Engineering' },
+      { label: 'Year', value: 2026 },
+    ],
+    flags: {
+      featured: true,
+      hidden: false,
+      empty: null,
+    },
+  };
+  data.content.pages[0].data = {
+    swatches: [
+      { name: 'Ink', value: '#111111' },
+      { name: 'Paper', value: '#ffffff' },
+    ],
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData rejects invalid structured data shapes', () => {
+  {
+    const data = createValidPreviewData();
+    data.content.posts[0].data = 'hello';
+    data.content.pages[0].data = ['docs'];
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].data'), true);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].data'), true);
+  }
+
+  {
+    const data = createValidPreviewData();
+    data.content.pages[0].data = {
+      'bad.key': true,
+      'bad--key': true,
+      too_deep: { a: { b: { c: { d: { e: true } } } } },
+      too_many: Object.fromEntries(Array.from({ length: 65 }, (_, index) => [`key_${index}`, index])),
+      too_long: Array.from({ length: 257 }, (_, index) => index),
+      infinite: Infinity,
+      unsupported: undefined,
+    };
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].data.bad.key'), true);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].data.bad--key'), true);
+    assert.equal(result.errors.some((issue) => issue.code === 'INVALID_DATA_DEPTH'), true);
+    assert.equal(result.errors.some((issue) => issue.code === 'INVALID_DATA_OBJECT_SIZE'), true);
+    assert.equal(result.errors.some((issue) => issue.code === 'INVALID_DATA_ARRAY_SIZE'), true);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].data.infinite'), true);
+    assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].data.unsupported'), true);
+  }
+});
+
 test('validatePreviewData accepts optional permalinks and page path', () => {
   const data = createValidPreviewData();
   data.site.permalinks = {
