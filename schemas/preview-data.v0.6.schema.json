@@ -697,6 +697,11 @@
           "description": "Link target semantics for the theme.",
           "markdownDescription": "Link target semantics for the theme."
         },
+        "meta": {
+          "$ref": "#/$defs/previewMeta",
+          "description": "Optional scalar display metadata such as icon, badge, or accent.",
+          "markdownDescription": "Optional scalar display metadata such as `icon`, `badge`, or `accent`."
+        },
         "children": {
           "type": "array",
           "items": {
@@ -1096,6 +1101,9 @@
               "url": "/",
               "type": "custom",
               "target": "_self",
+              "meta": {
+                "icon": "home"
+              },
               "children": []
             },
             {
@@ -1103,6 +1111,9 @@
               "url": "/about/",
               "type": "page",
               "target": "_self",
+              "meta": {
+                "badge": "New"
+              },
               "children": []
             }
           ]

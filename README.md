@@ -65,7 +65,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - fallback `robots.txt` indexing policy may be carried as optional `site.indexing`
 - enabled menus may be exported in optional root `menus`
 - `menus` is keyed by stable `menu_id`
-- menu items use `title`, `url`, `type`, `target`, and recursive `children`
+- menu items use `title`, `url`, `type`, `target`, optional scalar `meta`, and recursive `children`
 - menu item `target` is `_self` or `_blank`
 - menu items do not carry admin-only fields such as `reference_id`
 - enabled widget areas may be exported in optional root `widgets`

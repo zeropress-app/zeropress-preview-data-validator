@@ -113,6 +113,24 @@ function getIssueAtPath(result, issuePath) {
   return result.errors.find((issue) => issue.path === issuePath);
 }
 
+function createNestedMenuItem(depth, maxDepth = 9) {
+  return {
+    title: `Level ${depth}`,
+    url: `/level-${depth}/`,
+    type: 'custom',
+    target: '_self',
+    meta: depth === 1 ? {
+      icon: 'docs',
+      badge: 'New',
+      accent: 'green',
+      featured: true,
+      order: 1,
+      empty: null,
+    } : undefined,
+    children: depth < maxDepth ? [createNestedMenuItem(depth + 1, maxDepth)] : [],
+  };
+}
+
 test('validatePreviewData accepts a valid v0.6 payload', () => {
   const result = validatePreviewData(createValidPreviewData());
   assert.equal(result.ok, true);
@@ -576,39 +594,27 @@ test('validatePreviewData accepts missing widgets', () => {
   assert.equal(result.ok, true);
 });
 
-test('validatePreviewData accepts nested menus of arbitrary depth', () => {
+test('validatePreviewData accepts nested menus and scalar menu item meta', () => {
   const data = createValidPreviewData();
   data.menus.docs_sidebar = {
     name: 'Docs Sidebar',
-    items: [
-      {
-        title: 'Workers',
-        url: '/workers/',
-        type: 'page',
-        target: '_self',
-        children: [
-          {
-            title: 'CLI',
-            url: '/workers/cli/',
-            type: 'page',
-            target: '_self',
-            children: [
-              {
-                title: 'Install',
-                url: '/workers/cli/install/',
-                type: 'page',
-                target: '_self',
-                children: [],
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    items: [createNestedMenuItem(1)],
   };
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects menu item meta objects', () => {
+  const invalidMeta = createValidPreviewData();
+  invalidMeta.menus.primary.items[0].meta = {
+    icon: 'home',
+    options: { tone: 'accent' },
+  };
+
+  const metaResult = validatePreviewData(invalidMeta);
+  assert.equal(metaResult.ok, false);
+  assert.equal(getIssueAtPath(metaResult, 'menus.primary.items[0].meta.options')?.code, 'INVALID_META_VALUE');
 });
 
 test('validatePreviewData rejects invalid menu item target and legacy menu fields', () => {

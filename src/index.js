@@ -216,7 +216,7 @@ function validatePreviewMenu(menu, path, errors) {
 }
 
 function validatePreviewMenuItem(item, path, errors) {
-  validateClosedObject(item, path, errors, ['title', 'url', 'type', 'target', 'children']);
+  validateClosedObject(item, path, errors, ['title', 'url', 'type', 'target', 'meta', 'children']);
   if (!isObject(item)) {
     return;
   }
@@ -225,6 +225,7 @@ function validatePreviewMenuItem(item, path, errors) {
   validateUrlLike(item.url, `${path}.url`, 'INVALID_MENU_ITEM_URL', errors);
   validateEnum(item.type, `${path}.type`, 'INVALID_MENU_ITEM_TYPE', errors, PREVIEW_MENU_ITEM_TYPES);
   validateEnum(item.target, `${path}.target`, 'INVALID_MENU_ITEM_TARGET', errors, PREVIEW_MENU_TARGETS);
+  validatePreviewMeta(item.meta, `${path}.meta`, errors);
   validateArray(item.children, `${path}.children`, 'INVALID_MENU_ITEM_CHILDREN', errors, (entry, index) => {
     validatePreviewMenuItem(entry, `${path}.children[${index}]`, errors);
   });
@@ -915,6 +916,9 @@ function isOptionalKey(path, key) {
   }
   if (path.startsWith('content.media[')) {
     return key === 'alt';
+  }
+  if (path.startsWith('menus.') && (path.includes('.items[') || path.includes('.children['))) {
+    return key === 'meta';
   }
   if (path.startsWith('widgets.') && path.includes('.items[')) {
     return key === 'settings';

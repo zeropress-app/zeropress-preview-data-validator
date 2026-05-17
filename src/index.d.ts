@@ -142,6 +142,7 @@ export interface PreviewMenuItemData {
   url: string;
   type: PreviewMenuItemType;
   target: PreviewMenuItemTarget;
+  meta?: Record<string, PreviewMetaValue>;
   children: PreviewMenuItemData[];
 }
 
