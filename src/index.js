@@ -12,6 +12,7 @@ const PREVIEW_COLLECTION_ITEM_TYPES = ['post', 'page'];
 const PREVIEW_MEDIA_DELIVERY_MODES = ['none', 'media_domain'];
 const PREVIEW_DATETIME_DISPLAY_MODES = ['static', 'client'];
 const PREVIEW_DATETIME_STYLES = ['none', 'short', 'medium', 'long', 'full'];
+const PREVIEW_DISCOVERABILITY_VALUES = ['default', 'noindex', 'delist'];
 const PREVIEW_PERMALINK_OUTPUT_STYLES = ['directory', 'html-extension'];
 const PREVIEW_PERMALINK_FIELDS = ['posts', 'pages', 'categories', 'tags'];
 const PREVIEW_FRONT_PAGE_TYPES = ['theme_index', 'page', 'standalone_html'];
@@ -488,6 +489,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
     'meta',
     'data',
     'status',
+    'discoverability',
     'allow_comments',
     'category_slugs',
     'tag_slugs',
@@ -506,6 +508,9 @@ function validatePreviewPost(post, path, errors, authorIds) {
   validateDateTimeString(post.updated_at_iso, `${path}.updated_at_iso`, 'INVALID_POST_UPDATED_AT_ISO', errors);
   validateNonEmptyString(post.author_id, `${path}.author_id`, 'INVALID_POST_AUTHOR_ID', errors);
   validateEnum(post.status, `${path}.status`, 'INVALID_POST_STATUS', errors, ['published', 'draft']);
+  if (post.discoverability !== undefined) {
+    validateEnum(post.discoverability, `${path}.discoverability`, 'INVALID_POST_DISCOVERABILITY', errors, PREVIEW_DISCOVERABILITY_VALUES);
+  }
   validateBoolean(post.allow_comments, `${path}.allow_comments`, 'INVALID_POST_ALLOW_COMMENTS', errors);
   validateSlugArray(post.category_slugs, `${path}.category_slugs`, 'INVALID_POST_CATEGORY_SLUGS', errors);
   validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors);
@@ -522,7 +527,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'data', 'status']);
+  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'data', 'status', 'discoverability']);
   if (!isObject(page)) {
     return;
   }
@@ -541,6 +546,9 @@ function validatePreviewPage(page, path, errors) {
   validatePreviewMeta(page.meta, `${path}.meta`, errors);
   validatePreviewStructuredData(page.data, `${path}.data`, errors);
   validateEnum(page.status, `${path}.status`, 'INVALID_PAGE_STATUS', errors, ['published', 'draft']);
+  if (page.discoverability !== undefined) {
+    validateEnum(page.discoverability, `${path}.discoverability`, 'INVALID_PAGE_DISCOVERABILITY', errors, PREVIEW_DISCOVERABILITY_VALUES);
+  }
 }
 
 function validatePreviewMeta(meta, path, errors) {
@@ -927,10 +935,10 @@ function isOptionalKey(path, key) {
     return key === 'title' || key === 'description';
   }
   if (path.startsWith('content.posts[')) {
-    return key === 'id' || key === 'featured_image' || key === 'meta' || key === 'data';
+    return key === 'id' || key === 'featured_image' || key === 'meta' || key === 'data' || key === 'discoverability';
   }
   if (path.startsWith('content.pages[')) {
-    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'meta' || key === 'data';
+    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'meta' || key === 'data' || key === 'discoverability';
   }
   if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
     return key === 'description';

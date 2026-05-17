@@ -1,5 +1,6 @@
 export type PreviewStatus = 'published' | 'draft';
 export type PreviewDocumentType = 'plaintext' | 'markdown' | 'html';
+export type PreviewDiscoverability = 'default' | 'noindex' | 'delist';
 export type PreviewMetaValue = string | number | boolean | null;
 export type PreviewStructuredDataValue =
   | string
@@ -105,6 +106,7 @@ export interface PreviewPostData {
   meta?: Record<string, PreviewMetaValue>;
   data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;
+  discoverability?: PreviewDiscoverability;
   allow_comments: boolean;
   category_slugs: string[];
   tag_slugs: string[];
@@ -120,6 +122,7 @@ export interface PreviewPageData {
   meta?: Record<string, PreviewMetaValue>;
   data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;
+  discoverability?: PreviewDiscoverability;
 }
 
 export interface PreviewCategoryData {

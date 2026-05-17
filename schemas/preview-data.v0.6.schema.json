@@ -574,6 +574,12 @@
           "type": "string",
           "enum": ["published", "draft"]
         },
+        "discoverability": {
+          "type": "string",
+          "enum": ["default", "noindex", "delist"],
+          "description": "Optional document discoverability policy. default leaves generated discovery outputs unchanged; noindex adds HTML robots noindex; delist removes the document from automatic discovery outputs while still rendering its route.",
+          "markdownDescription": "Optional document discoverability policy. `default` leaves generated discovery outputs unchanged; `noindex` adds HTML robots `noindex`; `delist` removes the document from automatic discovery outputs while still rendering its route."
+        },
         "allow_comments": {
           "type": "boolean"
         },
@@ -629,6 +635,12 @@
         "status": {
           "type": "string",
           "enum": ["published", "draft"]
+        },
+        "discoverability": {
+          "type": "string",
+          "enum": ["default", "noindex", "delist"],
+          "description": "Optional document discoverability policy. default leaves generated discovery outputs unchanged; noindex adds HTML robots noindex; delist removes the document from automatic discovery outputs while still rendering its route.",
+          "markdownDescription": "Optional document discoverability policy. `default` leaves generated discovery outputs unchanged; `noindex` adds HTML robots `noindex`; `delist` removes the document from automatic discovery outputs while still rendering its route."
         }
       }
     },

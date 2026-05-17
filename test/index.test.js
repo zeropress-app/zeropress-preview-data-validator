@@ -275,6 +275,29 @@ test('validatePreviewData accepts structured data on posts and pages', () => {
   assert.equal(result.errors.length, 0);
 });
 
+test('validatePreviewData accepts optional post and page discoverability policies', () => {
+  for (const discoverability of ['default', 'noindex', 'delist']) {
+    const data = createValidPreviewData();
+    data.content.posts[0].discoverability = discoverability;
+    data.content.pages[0].discoverability = discoverability;
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, true);
+    assert.equal(result.errors.length, 0);
+  }
+});
+
+test('validatePreviewData rejects invalid post and page discoverability policies', () => {
+  const data = createValidPreviewData();
+  data.content.posts[0].discoverability = 'private';
+  data.content.pages[0].discoverability = false;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].discoverability'), true);
+  assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].discoverability'), true);
+});
+
 test('validatePreviewData rejects invalid structured data shapes', () => {
   {
     const data = createValidPreviewData();
