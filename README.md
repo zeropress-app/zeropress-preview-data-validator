@@ -6,10 +6,15 @@
 
 Shared validation core for ZeroPress preview data v0.6.
 
-This package is the canonical runtime contract for preview payloads consumed by:
+This package is the canonical runtime contract for preview payloads consumed directly by:
 
-- `zeropress-theme dev`
+- [@zeropress/build-core](https://www.npmjs.com/package/@zeropress/build-core)
 - `zeropress-admin-api-v2`
+
+Public contract references:
+
+- [Preview Data v0.6 Spec](https://zeropress.dev/spec/preview-data-v0.6.html)
+- [Preview Data v0.6 Schema](https://zeropress.dev/schemas/preview-data.v0.6.schema.json)
 
 ## Install
 
