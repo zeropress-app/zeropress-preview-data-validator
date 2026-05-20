@@ -348,6 +348,12 @@
           "description": "Whether generated HTML pages should include the ZeroPress generator meta tag. Missing or true exposes the generator; false omits it.",
           "markdownDescription": "Whether generated HTML pages should include `<meta name=\"generator\" content=\"ZeroPress\">`. Missing or `true` exposes the generator; `false` omits it."
         },
+        "search": {
+          "type": "boolean",
+          "default": true,
+          "description": "Site-level preference for native static search. Missing or true allows search when the active theme declares features.search; false disables native search artifacts and theme-facing search UI.",
+          "markdownDescription": "Site-level preference for native static search. Missing or `true` allows search when the active theme declares `features.search`; `false` disables native search artifacts and theme-facing search UI."
+        },
         "locale": {
           "type": "string",
           "minLength": 2
@@ -995,6 +1001,7 @@
           "apple_touch_icon": "/apple-touch-icon.png"
         },
         "expose_generator": true,
+        "search": true,
         "locale": "en-US",
         "posts_per_page": 10,
         "datetime_display": "static",

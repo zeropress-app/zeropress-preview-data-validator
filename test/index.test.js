@@ -895,6 +895,29 @@ test('validatePreviewData accepts optional site indexing policy', () => {
   }
 });
 
+test('validatePreviewData accepts optional site search policy', () => {
+  for (const value of [undefined, true, false]) {
+    const data = createValidPreviewData();
+    if (value !== undefined) {
+      data.site.search = value;
+    }
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, true);
+  }
+});
+
+test('validatePreviewData rejects non-boolean site search policy', () => {
+  for (const value of ['false', 0, null]) {
+    const data = createValidPreviewData();
+    data.site.search = value;
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.errors.some((issue) => issue.path === 'site.search'), true);
+  }
+});
+
 test('validatePreviewData rejects non-boolean site indexing policy', () => {
   for (const value of ['false', 0]) {
     const data = createValidPreviewData();

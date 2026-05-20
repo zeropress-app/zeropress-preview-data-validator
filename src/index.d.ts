@@ -51,6 +51,7 @@ export interface PreviewSiteData {
   media_delivery_mode?: PreviewMediaDeliveryMode;
   favicon?: PreviewSiteFaviconData;
   expose_generator?: boolean;
+  search?: boolean;
   locale: string;
   posts_per_page: number;
   datetime_display: PreviewDatetimeDisplay;
