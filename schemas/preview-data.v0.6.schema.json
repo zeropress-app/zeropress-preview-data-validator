@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://zeropress.dev/schemas/preview-data.v0.6.schema.json",
+  "$id": "https://schemas.zeropress.dev/preview-data/v0.6/schema.json",
   "title": "ZeroPress Theme Preview Data v0.6",
   "description": "ZeroPress theme preview payload. v0.6 is data-only and may include optional menus, widget areas, and named collections for themes.",
   "markdownDescription": "ZeroPress theme preview payload. `v0.6` is data-only and may include optional menus, widget areas, and named collections for themes.",
@@ -984,7 +984,7 @@
   },
   "examples": [
     {
-      "$schema": "https://zeropress.dev/schemas/preview-data.v0.6.schema.json",
+      "$schema": "https://schemas.zeropress.dev/preview-data/v0.6/schema.json",
       "version": "0.6",
       "generator": "example-generator",
       "generated_at": "2026-05-09T00:00:00Z",

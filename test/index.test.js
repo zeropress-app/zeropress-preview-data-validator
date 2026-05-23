@@ -179,7 +179,7 @@ test('validatePreviewData rejects old v0.6 date_format and time_format fields', 
 
 test('validatePreviewData accepts optional root $schema editor hint', () => {
   const data = createValidPreviewData();
-  data.$schema = 'https://zeropress.dev/schemas/preview-data.v0.6.schema.json';
+  data.$schema = 'https://schemas.zeropress.dev/preview-data/v0.6/schema.json';
 
   const result = validatePreviewData(data);
   assert.equal(result.ok, true);

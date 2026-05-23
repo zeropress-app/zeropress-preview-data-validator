@@ -14,7 +14,7 @@ This package is the canonical runtime contract for preview payloads consumed dir
 Public contract references:
 
 - [Preview Data v0.6 Spec](https://zeropress.dev/spec/preview-data-v0.6.html)
-- [Preview Data v0.6 Schema](https://zeropress.dev/schemas/preview-data.v0.6.schema.json)
+- [Preview Data v0.6 Schema](https://schemas.zeropress.dev/preview-data/v0.6/schema.json)
 
 ## Install
 
