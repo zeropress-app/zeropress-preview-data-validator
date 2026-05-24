@@ -50,6 +50,7 @@ export interface PreviewSiteData {
   media_base_url: string;
   media_delivery_mode?: PreviewMediaDeliveryMode;
   favicon?: PreviewSiteFaviconData;
+  logo?: PreviewSiteLogoData;
   expose_generator?: boolean;
   search?: boolean;
   locale: string;
@@ -72,6 +73,11 @@ export interface PreviewSiteFaviconData {
   svg?: string;
   png?: string;
   apple_touch_icon?: string;
+}
+
+export interface PreviewSiteLogoData {
+  src: string;
+  alt?: string;
 }
 
 export interface PreviewSiteFooterData {

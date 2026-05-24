@@ -883,6 +883,36 @@ test('validatePreviewData accepts optional scalar site meta', () => {
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData accepts optional site logo', () => {
+  const data = createValidPreviewData();
+  data.site.logo = {
+    src: '/logo.svg',
+    alt: 'Example logo',
+  };
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid site logo', () => {
+  const cases = [
+    { logo: {}, path: 'site.logo.src' },
+    { logo: { src: '' }, path: 'site.logo.src' },
+    { logo: { src: '//cdn.example.com/logo.svg' }, path: 'site.logo.src' },
+    { logo: { src: '/logo.svg', alt: 1 }, path: 'site.logo.alt' },
+    { logo: { src: '/logo.svg', width: 120 }, path: 'site.logo.width' },
+  ];
+
+  for (const { logo, path } of cases) {
+    const data = createValidPreviewData();
+    data.site.logo = logo;
+
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.errors.some((issue) => issue.path === path), true);
+  }
+});
+
 test('validatePreviewData accepts optional site indexing policy', () => {
   for (const value of [undefined, true, false]) {
     const data = createValidPreviewData();

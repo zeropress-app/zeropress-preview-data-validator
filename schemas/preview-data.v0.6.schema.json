@@ -342,6 +342,9 @@
         "favicon": {
           "$ref": "#/$defs/siteFavicon"
         },
+        "logo": {
+          "$ref": "#/$defs/siteLogo"
+        },
         "expose_generator": {
           "type": "boolean",
           "default": true,
@@ -445,6 +448,26 @@
           "minLength": 1,
           "description": "Apple touch icon URL/path.",
           "markdownDescription": "Apple touch icon URL/path."
+        }
+      }
+    },
+    "siteLogo": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional site logo data for theme rendering.",
+      "markdownDescription": "Optional site logo data for theme rendering.",
+      "required": ["src"],
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Logo URL or safe relative path.",
+          "markdownDescription": "Logo URL or safe relative path."
+        },
+        "alt": {
+          "type": "string",
+          "description": "Optional logo alternative text. Themes may fall back to site.title when omitted.",
+          "markdownDescription": "Optional logo alternative text. Themes may fall back to `site.title` when omitted."
         }
       }
     },
@@ -999,6 +1022,10 @@
           "svg": "/favicon.svg",
           "png": "/favicon.png",
           "apple_touch_icon": "/apple-touch-icon.png"
+        },
+        "logo": {
+          "src": "/logo.svg",
+          "alt": "Example Magazine"
         },
         "expose_generator": true,
         "search": true,

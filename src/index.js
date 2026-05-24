@@ -87,6 +87,7 @@ function validateSite(site, path, errors) {
     'media_base_url',
     'media_delivery_mode',
     'favicon',
+    'logo',
     'expose_generator',
     'search',
     'locale',
@@ -116,6 +117,9 @@ function validateSite(site, path, errors) {
   }
   if (site.favicon !== undefined) {
     validateSiteFavicon(site.favicon, `${path}.favicon`, errors);
+  }
+  if (site.logo !== undefined) {
+    validateSiteLogo(site.logo, `${path}.logo`, errors);
   }
   if (site.expose_generator !== undefined) {
     validateBoolean(site.expose_generator, `${path}.expose_generator`, 'INVALID_SITE_EXPOSE_GENERATOR', errors);
@@ -460,6 +464,18 @@ function validateSiteFavicon(favicon, path, errors) {
     if (favicon[key] !== undefined) {
       validateUrlLike(favicon[key], `${path}.${key}`, 'INVALID_SITE_FAVICON_URL', errors);
     }
+  }
+}
+
+function validateSiteLogo(logo, path, errors) {
+  validateClosedObject(logo, path, errors, ['src', 'alt']);
+  if (!isObject(logo)) {
+    return;
+  }
+
+  validateUrlLike(logo.src, `${path}.src`, 'INVALID_SITE_LOGO_URL', errors);
+  if (logo.alt !== undefined) {
+    validateString(logo.alt, `${path}.alt`, 'INVALID_SITE_LOGO_ALT', errors);
   }
 }
 
@@ -903,10 +919,13 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'media_delivery_mode' || key === 'favicon' || key === 'expose_generator' || key === 'search' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'media_delivery_mode' || key === 'favicon' || key === 'logo' || key === 'expose_generator' || key === 'search' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.favicon') {
     return key === 'icon' || key === 'svg' || key === 'png' || key === 'apple_touch_icon';
+  }
+  if (path === 'site.logo') {
+    return key === 'alt';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
