@@ -655,6 +655,12 @@
           "type": "string",
           "minLength": 1
         },
+        "updated_at_iso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Optional machine-readable page update timestamp.",
+          "markdownDescription": "Optional machine-readable page update timestamp."
+        },
         "meta": {
           "$ref": "#/$defs/previewMeta"
         },
@@ -1097,6 +1103,7 @@
             "content": "# About\n\nAbout this site.",
             "document_type": "markdown",
             "excerpt": "About this site.",
+            "updated_at_iso": "2026-05-09T00:00:00Z",
             "meta": {
               "nav_label": "About"
             },

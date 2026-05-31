@@ -547,7 +547,7 @@ function validatePreviewPost(post, path, errors, authorIds) {
 }
 
 function validatePreviewPage(page, path, errors) {
-  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'meta', 'data', 'status', 'discoverability']);
+  validateClosedObject(page, path, errors, ['title', 'slug', 'path', 'content', 'document_type', 'excerpt', 'featured_image', 'updated_at_iso', 'meta', 'data', 'status', 'discoverability']);
   if (!isObject(page)) {
     return;
   }
@@ -562,6 +562,9 @@ function validatePreviewPage(page, path, errors) {
   }
   if (page.featured_image !== undefined) {
     validateUrlLike(page.featured_image, `${path}.featured_image`, 'INVALID_PAGE_FEATURED_IMAGE', errors);
+  }
+  if (page.updated_at_iso !== undefined) {
+    validateDateTimeString(page.updated_at_iso, `${path}.updated_at_iso`, 'INVALID_PAGE_UPDATED_AT_ISO', errors);
   }
   validatePreviewMeta(page.meta, `${path}.meta`, errors);
   validatePreviewStructuredData(page.data, `${path}.data`, errors);
@@ -961,7 +964,7 @@ function isOptionalKey(path, key) {
     return key === 'id' || key === 'featured_image' || key === 'meta' || key === 'data' || key === 'discoverability';
   }
   if (path.startsWith('content.pages[')) {
-    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'meta' || key === 'data' || key === 'discoverability';
+    return key === 'path' || key === 'excerpt' || key === 'featured_image' || key === 'updated_at_iso' || key === 'meta' || key === 'data' || key === 'discoverability';
   }
   if (path.startsWith('content.categories[') || path.startsWith('content.tags[')) {
     return key === 'description';

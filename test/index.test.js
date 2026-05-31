@@ -298,6 +298,26 @@ test('validatePreviewData rejects invalid post and page discoverability policies
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].discoverability'), true);
 });
 
+test('validatePreviewData accepts optional page updated_at_iso', () => {
+  const data = createValidPreviewData();
+  data.content.pages[0].updated_at_iso = '2026-05-27T11:20:30+09:00';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+});
+
+test('validatePreviewData rejects invalid page updated_at_iso', () => {
+  const data = createValidPreviewData();
+  data.content.pages[0].updated_at_iso = 'yesterday';
+
+  const result = validatePreviewData(data);
+  const issue = getIssueAtPath(result, 'content.pages[0].updated_at_iso');
+  assert.equal(result.ok, false);
+  assert.ok(issue);
+  assert.equal(issue.code, 'INVALID_PAGE_UPDATED_AT_ISO');
+});
+
 test('validatePreviewData rejects invalid structured data shapes', () => {
   {
     const data = createValidPreviewData();

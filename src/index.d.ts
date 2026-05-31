@@ -126,6 +126,7 @@ export interface PreviewPageData {
   document_type: PreviewDocumentType;
   excerpt?: string;
   featured_image?: string;
+  updated_at_iso?: string;
   meta?: Record<string, PreviewMetaValue>;
   data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;

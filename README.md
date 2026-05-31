@@ -58,6 +58,7 @@ Published schema files are shipped from the package `schemas/` directory.
 - posts and pages may carry optional `discoverability`: `default`, `noindex`, or `delist`
 - `site.permalinks` may define URL/output policy for posts, pages, categories, and tags
 - pages may carry optional `path` for nested page URLs
+- pages may carry optional `updated_at_iso` for page update metadata and sitemap `lastmod`
 - pages, categories, and tags do not carry internal `id` fields
 - `site.media_base_url` is required and must be either an empty string or an absolute URI
 - optional `site.media_delivery_mode` may be `none` or `media_domain`
