@@ -461,8 +461,8 @@
         "src": {
           "type": "string",
           "minLength": 1,
-          "description": "Logo URL or safe relative path.",
-          "markdownDescription": "Logo URL or safe relative path."
+          "description": "Logo URL/path for theme rendering. Root-relative paths remain same-host paths; relative paths are media-base-relative render URLs, not source file references.",
+          "markdownDescription": "Logo URL/path for theme rendering. Root-relative paths remain same-host paths; relative paths are media-base-relative render URLs, not source file references."
         },
         "alt": {
           "type": "string",
