@@ -345,6 +345,9 @@
         "logo": {
           "$ref": "#/$defs/siteLogo"
         },
+        "newsletter": {
+          "$ref": "#/$defs/siteNewsletter"
+        },
         "expose_generator": {
           "type": "boolean",
           "default": true,
@@ -470,6 +473,75 @@
           "markdownDescription": "Optional logo alternative text. Themes may fall back to `site.title` when omitted."
         }
       }
+    },
+    "siteNewsletter": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional newsletter CTA/island data for theme rendering. ZeroPress does not implement provider submit behavior.",
+      "markdownDescription": "Optional newsletter CTA/island data for theme rendering. ZeroPress does not implement provider submit behavior.",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the newsletter CTA/island should be shown by themes that support features.newsletter.",
+          "markdownDescription": "Whether the newsletter CTA/island should be shown by themes that support `features.newsletter`."
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional theme-facing newsletter title. Themes own fallback copy.",
+          "markdownDescription": "Optional theme-facing newsletter title. Themes own fallback copy."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional theme-facing newsletter description. Themes own fallback copy.",
+          "markdownDescription": "Optional theme-facing newsletter description. Themes own fallback copy."
+        },
+        "button_label": {
+          "type": "string",
+          "description": "Optional theme-facing CTA label. Themes own fallback copy.",
+          "markdownDescription": "Optional theme-facing CTA label. Themes own fallback copy."
+        },
+        "signup_url": {
+          "$ref": "#/$defs/newsletterUrl",
+          "description": "Optional external signup URL or same-host root-relative signup path.",
+          "markdownDescription": "Optional external signup URL or same-host root-relative signup path."
+        },
+        "embed_url": {
+          "$ref": "#/$defs/newsletterUrl",
+          "description": "Optional iframe embed URL or same-host root-relative embed path.",
+          "markdownDescription": "Optional iframe embed URL or same-host root-relative embed path."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "enabled": { "const": true } },
+            "required": ["enabled"]
+          },
+          "then": {
+            "anyOf": [
+              { "required": ["signup_url"] },
+              { "required": ["embed_url"] }
+            ]
+          }
+        }
+      ]
+    },
+    "newsletterUrl": {
+      "description": "A root-relative path or absolute http(s) URL. Protocol-relative and JavaScript URLs are not allowed.",
+      "markdownDescription": "A root-relative path or absolute `http(s)` URL. Protocol-relative and JavaScript URLs are not allowed.",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 2,
+          "pattern": "^/(?!/)(?!.*[\\\\\\s\\u0000-\\u001F\\u007F]).+$"
+        },
+        {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://(?!.*[\\\\\\s\\u0000-\\u001F\\u007F]).+$"
+        }
+      ]
     },
     "siteFooter": {
       "type": "object",

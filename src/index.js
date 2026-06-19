@@ -88,6 +88,7 @@ function validateSite(site, path, errors) {
     'media_delivery_mode',
     'favicon',
     'logo',
+    'newsletter',
     'expose_generator',
     'search',
     'locale',
@@ -120,6 +121,9 @@ function validateSite(site, path, errors) {
   }
   if (site.logo !== undefined) {
     validateSiteLogo(site.logo, `${path}.logo`, errors);
+  }
+  if (site.newsletter !== undefined) {
+    validateSiteNewsletter(site.newsletter, `${path}.newsletter`, errors);
   }
   if (site.expose_generator !== undefined) {
     validateBoolean(site.expose_generator, `${path}.expose_generator`, 'INVALID_SITE_EXPOSE_GENERATOR', errors);
@@ -476,6 +480,42 @@ function validateSiteLogo(logo, path, errors) {
   validateUrlLike(logo.src, `${path}.src`, 'INVALID_SITE_LOGO_URL', errors);
   if (logo.alt !== undefined) {
     validateString(logo.alt, `${path}.alt`, 'INVALID_SITE_LOGO_ALT', errors);
+  }
+}
+
+function validateSiteNewsletter(newsletter, path, errors) {
+  validateClosedObject(newsletter, path, errors, [
+    'enabled',
+    'title',
+    'description',
+    'button_label',
+    'signup_url',
+    'embed_url',
+  ]);
+  if (!isObject(newsletter)) {
+    return;
+  }
+
+  validateBoolean(newsletter.enabled, `${path}.enabled`, 'INVALID_SITE_NEWSLETTER_ENABLED', errors);
+
+  if (newsletter.title !== undefined) {
+    validateString(newsletter.title, `${path}.title`, 'INVALID_SITE_NEWSLETTER_TITLE', errors);
+  }
+  if (newsletter.description !== undefined) {
+    validateString(newsletter.description, `${path}.description`, 'INVALID_SITE_NEWSLETTER_DESCRIPTION', errors);
+  }
+  if (newsletter.button_label !== undefined) {
+    validateString(newsletter.button_label, `${path}.button_label`, 'INVALID_SITE_NEWSLETTER_BUTTON_LABEL', errors);
+  }
+  if (newsletter.signup_url !== undefined) {
+    validateNewsletterUrl(newsletter.signup_url, `${path}.signup_url`, 'INVALID_SITE_NEWSLETTER_SIGNUP_URL', errors);
+  }
+  if (newsletter.embed_url !== undefined) {
+    validateNewsletterUrl(newsletter.embed_url, `${path}.embed_url`, 'INVALID_SITE_NEWSLETTER_EMBED_URL', errors);
+  }
+
+  if (newsletter.enabled === true && newsletter.signup_url === undefined && newsletter.embed_url === undefined) {
+    errors.push(issue('INVALID_SITE_NEWSLETTER_URL', path, 'site.newsletter requires signup_url or embed_url when enabled is true'));
   }
 }
 
@@ -922,13 +962,16 @@ function isOptionalKey(path, key) {
     return key === 'head_end' || key === 'body_end';
   }
   if (path === 'site') {
-    return key === 'media_delivery_mode' || key === 'favicon' || key === 'logo' || key === 'expose_generator' || key === 'search' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
+    return key === 'media_delivery_mode' || key === 'favicon' || key === 'logo' || key === 'newsletter' || key === 'expose_generator' || key === 'search' || key === 'indexing' || key === 'permalinks' || key === 'front_page' || key === 'post_index' || key === 'footer' || key === 'meta';
   }
   if (path === 'site.favicon') {
     return key === 'icon' || key === 'svg' || key === 'png' || key === 'apple_touch_icon';
   }
   if (path === 'site.logo') {
     return key === 'alt';
+  }
+  if (path === 'site.newsletter') {
+    return key === 'title' || key === 'description' || key === 'button_label' || key === 'signup_url' || key === 'embed_url';
   }
   if (path === 'site.footer') {
     return key === 'copyright_text' || key === 'attribution';
@@ -1120,6 +1163,40 @@ function validateUrlLike(value, path, code, errors) {
   }
 
   validateUri(trimmed, path, code, errors);
+}
+
+function validateNewsletterUrl(value, path, code, errors) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    errors.push(issue(code, path, 'Expected a root-relative or http(s) URL string'));
+    return;
+  }
+
+  const trimmed = value.trim();
+  if (/[\s\\\u0000-\u001F\u007F]/u.test(trimmed)) {
+    errors.push(issue(code, path, 'Newsletter URLs must not contain whitespace, backslashes, or control characters'));
+    return;
+  }
+
+  if (trimmed.startsWith('//')) {
+    errors.push(issue(code, path, 'Protocol-relative URLs are not allowed'));
+    return;
+  }
+
+  if (trimmed.startsWith('/') && trimmed.length > 1) {
+    return;
+  }
+
+  let url;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    errors.push(issue(code, path, 'Expected a root-relative or http(s) URL string'));
+    return;
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    errors.push(issue(code, path, 'Expected http or https URL'));
+  }
 }
 
 function issue(code, path, message) {

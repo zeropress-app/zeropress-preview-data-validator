@@ -51,6 +51,7 @@ export interface PreviewSiteData {
   media_delivery_mode?: PreviewMediaDeliveryMode;
   favicon?: PreviewSiteFaviconData;
   logo?: PreviewSiteLogoData;
+  newsletter?: PreviewSiteNewsletterData;
   expose_generator?: boolean;
   search?: boolean;
   locale: string;
@@ -78,6 +79,15 @@ export interface PreviewSiteFaviconData {
 export interface PreviewSiteLogoData {
   src: string;
   alt?: string;
+}
+
+export interface PreviewSiteNewsletterData {
+  enabled: boolean;
+  title?: string;
+  description?: string;
+  button_label?: string;
+  signup_url?: string;
+  embed_url?: string;
 }
 
 export interface PreviewSiteFooterData {

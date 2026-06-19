@@ -198,6 +198,68 @@ test('validatePreviewData rejects non-string root $schema editor hint', () => {
   assert.equal(issue.code, 'INVALID_SCHEMA_HINT');
 });
 
+test('validatePreviewData accepts optional site newsletter settings', () => {
+  const disabled = createValidPreviewData();
+  disabled.site.newsletter = {
+    enabled: false,
+  };
+
+  const signupOnly = createValidPreviewData();
+  signupOnly.site.newsletter = {
+    enabled: true,
+    signup_url: 'https://example.com/newsletter',
+  };
+
+  const embedOnly = createValidPreviewData();
+  embedOnly.site.newsletter = {
+    enabled: true,
+    embed_url: '/newsletter.html',
+  };
+
+  const full = createValidPreviewData();
+  full.site.newsletter = {
+    enabled: true,
+    title: 'Subscribe',
+    description: 'Get updates by email.',
+    button_label: 'Subscribe',
+    signup_url: 'https://example.com/newsletter',
+    embed_url: '/newsletter.html',
+  };
+
+  for (const data of [disabled, signupOnly, embedOnly, full]) {
+    const result = validatePreviewData(data);
+    assert.equal(result.ok, true);
+    assert.equal(result.errors.length, 0);
+  }
+});
+
+test('validatePreviewData rejects invalid site newsletter settings', () => {
+  const cases = [
+    [{}, 'site.newsletter.enabled', 'MISSING_REQUIRED_PROPERTY'],
+    [{ enabled: true }, 'site.newsletter', 'INVALID_SITE_NEWSLETTER_URL'],
+    [{ enabled: true, signup_url: '' }, 'site.newsletter.signup_url', 'INVALID_SITE_NEWSLETTER_SIGNUP_URL'],
+    [{ enabled: true, signup_url: '/' }, 'site.newsletter.signup_url', 'INVALID_SITE_NEWSLETTER_SIGNUP_URL'],
+    [{ enabled: true, signup_url: '/newsletter form.html' }, 'site.newsletter.signup_url', 'INVALID_SITE_NEWSLETTER_SIGNUP_URL'],
+    [{ enabled: true, embed_url: '//example.com/newsletter.html' }, 'site.newsletter.embed_url', 'INVALID_SITE_NEWSLETTER_EMBED_URL'],
+    [{ enabled: true, signup_url: 'javascript:alert(1)' }, 'site.newsletter.signup_url', 'INVALID_SITE_NEWSLETTER_SIGNUP_URL'],
+    [{ enabled: true, signup_url: 'ftp://example.com/newsletter' }, 'site.newsletter.signup_url', 'INVALID_SITE_NEWSLETTER_SIGNUP_URL'],
+    [{ enabled: true, signup_url: '/newsletter.html', title: 42 }, 'site.newsletter.title', 'INVALID_SITE_NEWSLETTER_TITLE'],
+    [{ enabled: true, signup_url: '/newsletter.html', mode: 'popup' }, 'site.newsletter.mode', 'UNKNOWN_PROPERTY'],
+  ];
+
+  for (const [newsletter, issuePath, issueCode] of cases) {
+    const data = createValidPreviewData();
+    data.site.newsletter = newsletter;
+
+    const result = validatePreviewData(data);
+    const issue = getIssueAtPath(result, issuePath);
+
+    assert.equal(result.ok, false, `Expected newsletter=${JSON.stringify(newsletter)} to be rejected`);
+    assert.ok(issue, `Expected an issue at ${issuePath}`);
+    assert.equal(issue.code, issueCode);
+  }
+});
+
 test('validatePreviewData accepts optional scalar meta on posts and pages', () => {
   const data = createValidPreviewData();
   data.content.posts[0].meta = {
