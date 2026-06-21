@@ -191,6 +191,8 @@
       "properties": {
         "output_style": {
           "type": "string",
+          "description": "Controls whether generated public URLs and output files use directory index paths or .html extension paths. Allowed values: directory, html-extension.",
+          "markdownDescription": "Controls whether generated public URLs and output files use directory index paths or `.html` extension paths. Allowed values: `directory`, `html-extension`.",
           "enum": ["directory", "html-extension"]
         },
         "posts": {
@@ -210,8 +212,8 @@
     "permalinkPattern": {
       "type": "string",
       "minLength": 1,
-      "description": "Absolute URL path pattern using full-segment tokens such as :slug or :public_id. Literal .html suffixes are not part of v0.6.",
-      "markdownDescription": "Absolute URL path pattern using full-segment tokens such as `:slug` or `:public_id`. Literal `.html` suffixes are not part of `v0.6`."
+      "description": "Absolute URL path pattern beginning with /. Tokens must occupy full path segments, such as :slug or :public_id. Query strings, fragments, percent-encoding, and literal .html suffixes are not part of v0.6. Allowed tokens depend on the permalink field.",
+      "markdownDescription": "Absolute URL path pattern beginning with `/`. Tokens must occupy full path segments, such as `:slug` or `:public_id`. Query strings, fragments, percent-encoding, and literal `.html` suffixes are not part of `v0.6`. Allowed tokens depend on the permalink field."
     },
     "frontPage": {
       "type": "object",
