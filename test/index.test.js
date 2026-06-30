@@ -710,6 +710,23 @@ test('validatePreviewData accepts nested menus and scalar menu item meta', () =>
   assert.equal(result.ok, true);
 });
 
+test('validatePreviewData accepts menu items without legacy origin type', () => {
+  const data = createValidPreviewData();
+  delete data.menus.primary.items[0].type;
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, true);
+});
+
+test('validatePreviewData rejects invalid menu item origin type when present', () => {
+  const data = createValidPreviewData();
+  data.menus.primary.items[0].type = 'archive';
+
+  const result = validatePreviewData(data);
+  assert.equal(result.ok, false);
+  assert.equal(getIssueAtPath(result, 'menus.primary.items[0].type')?.code, 'INVALID_MENU_ITEM_TYPE');
+});
+
 test('validatePreviewData rejects menu item meta objects', () => {
   const invalidMeta = createValidPreviewData();
   invalidMeta.menus.primary.items[0].meta = {

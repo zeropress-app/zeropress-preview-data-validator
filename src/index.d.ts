@@ -161,7 +161,7 @@ export type PreviewMenuItemTarget = '_self' | '_blank';
 export interface PreviewMenuItemData {
   title: string;
   url: string;
-  type: PreviewMenuItemType;
+  type?: PreviewMenuItemType;
   target: PreviewMenuItemTarget;
   meta?: Record<string, PreviewMetaValue>;
   children: PreviewMenuItemData[];

@@ -790,7 +790,7 @@
     "menuItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "url", "type", "target", "children"],
+      "required": ["title", "url", "target", "children"],
       "description": "Theme-facing navigation item. Children may be nested to any depth.",
       "markdownDescription": "Theme-facing navigation item. `children` may be nested to any depth.",
       "properties": {
@@ -809,8 +809,8 @@
         "type": {
           "type": "string",
           "enum": ["custom", "page", "post", "category"],
-          "description": "Origin type of the menu item.",
-          "markdownDescription": "Origin type of the menu item."
+          "description": "Optional origin metadata for the menu item. Accepted in v0.6 for compatibility, but planned for removal in v0.7.",
+          "markdownDescription": "Optional origin metadata for the menu item. Accepted in `v0.6` for compatibility, but planned for removal in `v0.7`."
         },
         "target": {
           "type": "string",

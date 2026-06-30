@@ -236,7 +236,9 @@ function validatePreviewMenuItem(item, path, errors) {
 
   validateNonEmptyString(item.title, `${path}.title`, 'INVALID_MENU_ITEM_TITLE', errors);
   validateUrlLike(item.url, `${path}.url`, 'INVALID_MENU_ITEM_URL', errors);
-  validateEnum(item.type, `${path}.type`, 'INVALID_MENU_ITEM_TYPE', errors, PREVIEW_MENU_ITEM_TYPES);
+  if (item.type !== undefined) {
+    validateEnum(item.type, `${path}.type`, 'INVALID_MENU_ITEM_TYPE', errors, PREVIEW_MENU_ITEM_TYPES);
+  }
   validateEnum(item.target, `${path}.target`, 'INVALID_MENU_ITEM_TARGET', errors, PREVIEW_MENU_TARGETS);
   validatePreviewMeta(item.meta, `${path}.meta`, errors);
   validateArray(item.children, `${path}.children`, 'INVALID_MENU_ITEM_CHILDREN', errors, (entry, index) => {
@@ -995,7 +997,7 @@ function isOptionalKey(path, key) {
     return key === 'alt';
   }
   if (path.startsWith('menus.') && (path.includes('.items[') || path.includes('.children['))) {
-    return key === 'meta';
+    return key === 'type' || key === 'meta';
   }
   if (path.startsWith('widgets.') && path.includes('.items[')) {
     return key === 'settings';
