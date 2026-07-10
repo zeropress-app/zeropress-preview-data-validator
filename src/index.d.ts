@@ -112,7 +112,6 @@ export interface PreviewPostData {
   public_id: number;
   title: string;
   slug: string;
-  path?: string;
   content: string;
   document_type: PreviewDocumentType;
   excerpt: string;
@@ -132,6 +131,7 @@ export interface PreviewPostData {
 export interface PreviewPageData {
   title: string;
   slug: string;
+  path?: string;
   content: string;
   document_type: PreviewDocumentType;
   excerpt?: string;

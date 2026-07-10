@@ -1395,3 +1395,14 @@ test('published schema files are stored outside src', async () => {
   await fs.access(new URL('../schemas/preview-data.v0.5.schema.json', import.meta.url));
   await fs.access(new URL('../schemas/preview-data.v0.6.schema.json', import.meta.url));
 });
+
+test('TypeScript declarations expose path only on pages', async () => {
+  const declarations = await fs.readFile(new URL('../src/index.d.ts', import.meta.url), 'utf8');
+  const post = declarations.match(/export interface PreviewPostData \{([\s\S]*?)\n\}/)?.[1];
+  const page = declarations.match(/export interface PreviewPageData \{([\s\S]*?)\n\}/)?.[1];
+
+  assert.ok(post, 'PreviewPostData declaration must exist');
+  assert.ok(page, 'PreviewPageData declaration must exist');
+  assert.doesNotMatch(post, /^\s*path\??:/m);
+  assert.match(page, /^\s*path\?: string;$/m);
+});
