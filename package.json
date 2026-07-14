@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.js",
     "./preview-data.v0.5.schema.json": "./schemas/preview-data.v0.5.schema.json",
-    "./preview-data.v0.6.schema.json": "./schemas/preview-data.v0.6.schema.json"
+    "./preview-data.v0.6.schema.json": "./schemas/preview-data.v0.6.schema.json",
+    "./preview-data.v0.7.schema.json": "./schemas/preview-data.v0.7.schema.json"
   },
   "types": "./src/index.d.ts",
   "files": [
@@ -19,12 +20,13 @@
     "url": "git+https://github.com/zeropress-app/zeropress-preview-data-validator.git"
   },
   "scripts": {
-    "test": "node --test"
+    "check:schema": "node scripts/schema.js",
+    "test": "npm run check:schema && node --test"
   },
   "dependencies": {
-    "@zeropress/slug-policy": "^0.1.0"
+    "@zeropress/slug-policy": "0.2.1"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=22.12.0"
   }
 }
