@@ -94,8 +94,8 @@ export const SCHEMA_ANNOTATIONS = Object.freeze({
   '$defs/siteLogo/properties/alt': ['Optional logo alternative text. Themes may fall back to site.title when omitted.', 'Optional logo alternative text. Themes may fall back to `site.title` when omitted.'],
   '$defs/siteNewsletter': ['Optional newsletter CTA/island data for theme rendering. ZeroPress does not implement provider submit behavior.'],
   '$defs/siteNewsletter/properties/enabled': [
-    'Whether the newsletter CTA/island should be shown by themes that support features.newsletter.',
-    'Whether the newsletter CTA/island should be shown by themes that support `features.newsletter`.',
+    'Whether themes should show the newsletter CTA or island.',
+    'Whether themes should show the newsletter CTA or island.',
   ],
   '$defs/siteNewsletter/properties/title': ['Optional theme-facing newsletter title. Themes own fallback copy.'],
   '$defs/siteNewsletter/properties/description': ['Optional theme-facing newsletter description. Themes own fallback copy.'],

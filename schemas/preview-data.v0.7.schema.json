@@ -640,8 +640,8 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Whether the newsletter CTA/island should be shown by themes that support features.newsletter.",
-          "markdownDescription": "Whether the newsletter CTA/island should be shown by themes that support `features.newsletter`."
+          "description": "Whether themes should show the newsletter CTA or island.",
+          "markdownDescription": "Whether themes should show the newsletter CTA or island."
         },
         "title": {
           "type": "string",
