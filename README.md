@@ -58,7 +58,7 @@ deterministically and keeps examples as its final top-level member for review.
   SEO tag
 - global `content.tags[]` order has no semantic meaning; generators should emit
   a stable ascending order by tag name and then slug
-- per-post comment policy is expressed as required `allow_comments`; pages may carry optional `allow_comments`, where omission means `false`
+- Post and Page comment policy is expressed as optional `allow_comments`; omission means `false`, and producers should emit `true` only when comments are enabled for that item
 - authors are deduplicated in `content.authors[]`
 - posts reference authors via `author_id`
 - post `public_id` values are positive unique integers
@@ -174,8 +174,8 @@ must carry:
 `request_token` is opaque, non-blank, and limited to 512 Unicode code points.
 Whenever the object is present, its structure and token are validated. Consumers
 must ignore and omit it unless ZeroPress comments are effective for that content
-item. Page `allow_comments` defaults to `false` and requires a positive page
-`public_id` when explicitly enabled.
+item. Post and Page `allow_comments` default to `false`. A Page requires a
+positive `public_id` when comments are explicitly enabled.
 
 ### Search, feed, and archive requests
 

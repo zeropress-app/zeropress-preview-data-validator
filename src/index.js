@@ -738,7 +738,9 @@ function validatePreviewPost(post, path, errors, authorIds, commentPolicy) {
   if (hasOwn(post, 'discoverability')) {
     validateEnum(post.discoverability, `${path}.discoverability`, 'INVALID_POST_DISCOVERABILITY', errors, PREVIEW_DISCOVERABILITY_VALUES);
   }
-  validateBoolean(post.allow_comments, `${path}.allow_comments`, 'INVALID_POST_ALLOW_COMMENTS', errors);
+  if (hasOwn(post, 'allow_comments')) {
+    validateBoolean(post.allow_comments, `${path}.allow_comments`, 'INVALID_POST_ALLOW_COMMENTS', errors);
+  }
   validateContentCommentsPolicy(post, path, errors, commentPolicy, 'post');
   validateSlugArray(post.category_slugs, `${path}.category_slugs`, 'INVALID_POST_CATEGORY_SLUGS', errors);
   validateSlugArray(post.tag_slugs, `${path}.tag_slugs`, 'INVALID_POST_TAG_SLUGS', errors, {

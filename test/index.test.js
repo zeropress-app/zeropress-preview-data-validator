@@ -1427,13 +1427,21 @@ test('validatePreviewData rejects missing document_type on post or page', () => 
   assert.equal(result.errors.some((issue) => issue.path === 'content.pages[0].document_type'), true);
 });
 
-test('validatePreviewData rejects missing allow_comments on post', () => {
+test('validatePreviewData accepts missing allow_comments on Post and Page as disabled', () => {
   const data = createValidPreviewData();
   delete data.content.posts[0].allow_comments;
 
   const result = validatePreviewData(data);
-  assert.equal(result.ok, false);
-  assert.equal(result.errors.some((issue) => issue.path === 'content.posts[0].allow_comments'), true);
+  assert.equal(result.ok, true);
+  assert.equal(Object.hasOwn(data.content.posts[0], 'allow_comments'), false);
+  assert.equal(Object.hasOwn(data.content.pages[0], 'allow_comments'), false);
+
+  const invalid = createValidPreviewData();
+  invalid.content.posts[0].allow_comments = 'yes';
+  assert.equal(
+    getIssueAtPath(validatePreviewData(invalid), 'content.posts[0].allow_comments')?.code,
+    'INVALID_POST_ALLOW_COMMENTS',
+  );
 });
 
 test('validatePreviewData rejects legacy render-ready fields', () => {
@@ -2224,6 +2232,8 @@ test('generated v0.7 schema matches the committed contract and preserves annotat
   assert.equal(generated.$defs.siteCommentsThreading.properties.enabled.default, true);
   assert.equal(generated.$defs.siteCommentsThreading.properties.max_depth.default, 2);
   assert.equal(generated.$defs.page.required.includes('public_id'), false);
+  assert.equal(generated.$defs.post.required.includes('allow_comments'), false);
+  assert.equal(generated.$defs.post.properties.allow_comments.default, false);
   assert.equal(generated.$defs.page.required.includes('allow_comments'), false);
   assert.equal(generated.$defs.page.properties.allow_comments.default, false);
   assert.equal(generated.$defs.contentComments.required.includes('request_token'), true);
@@ -2411,6 +2421,7 @@ test('TypeScript declarations expose the v0.7 contract without a v0.6 compatibil
   assert.match(declarations, /\| \{ type: 'page'; page_path: string \}/);
   assert.match(declarations, /export interface PreviewCollectionPageItemData \{\n\s*type: 'page';\n\s*path: string;/);
   assert.match(declarations, /export interface PreviewSiteFaviconData \{[\s\S]*?\n\s*icon_dark\?: string;/);
+  assert.match(post, /^\s*allow_comments\?: boolean;$/m);
   assert.match(post, /^\s*comments\?: PreviewContentCommentsData;$/m);
   assert.match(page, /^\s*public_id\?: number;$/m);
   assert.match(page, /^\s*allow_comments\?: boolean;$/m);

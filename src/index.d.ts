@@ -150,7 +150,7 @@ export interface PreviewPostData {
   data?: Record<string, PreviewStructuredDataValue>;
   status: PreviewStatus;
   discoverability?: PreviewDiscoverability;
-  allow_comments: boolean;
+  allow_comments?: boolean;
   comments?: PreviewContentCommentsData;
   category_slugs: string[];
   /** Ordered display sequence, unique after NFC normalization. The first entry is not implicitly a primary or SEO tag. */

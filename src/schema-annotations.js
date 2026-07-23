@@ -174,6 +174,11 @@ export const SCHEMA_ANNOTATIONS = Object.freeze({
     'Optional document discoverability policy. `default` leaves generated discovery outputs unchanged; `noindex` adds HTML robots `noindex`; `delist` removes the document from automatic discovery outputs while still rendering its route.',
   ],
   '$defs/post/properties/slug': ['Post route identity. Values must be unique after NFC normalization within content.posts.'],
+  '$defs/post/properties/allow_comments': [
+    'Optional per-post comment policy. Missing means false.',
+    'Optional per-post comment policy. Missing means `false`.',
+    false,
+  ],
   '$defs/post/properties/comments': [
     'ZeroPress request metadata for this post. Required when ZeroPress comments are effective for the post; otherwise optional and ignored.',
   ],

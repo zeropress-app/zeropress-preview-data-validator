@@ -855,7 +855,6 @@
         "updated_at_iso",
         "author_id",
         "status",
-        "allow_comments",
         "category_slugs",
         "tag_slugs"
       ],
@@ -916,7 +915,10 @@
           "markdownDescription": "Optional document discoverability policy. `default` leaves generated discovery outputs unchanged; `noindex` adds HTML robots `noindex`; `delist` removes the document from automatic discovery outputs while still rendering its route."
         },
         "allow_comments": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "description": "Optional per-post comment policy. Missing means false.",
+          "markdownDescription": "Optional per-post comment policy. Missing means `false`."
         },
         "comments": {
           "$ref": "#/$defs/contentComments",

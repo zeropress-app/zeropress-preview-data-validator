@@ -82,8 +82,8 @@ export const OBJECT_CONTRACTS = Object.freeze({
   contentComments: contract(['request_token']),
   media: contract(['src', 'width', 'height'], ['alt']),
   post: contract(
-    ['public_id', 'title', 'slug', 'content', 'document_type', 'excerpt', 'published_at_iso', 'updated_at_iso', 'author_id', 'status', 'allow_comments', 'category_slugs', 'tag_slugs'],
-    ['featured_image', 'meta', 'data', 'discoverability', 'comments'],
+    ['public_id', 'title', 'slug', 'content', 'document_type', 'excerpt', 'published_at_iso', 'updated_at_iso', 'author_id', 'status', 'category_slugs', 'tag_slugs'],
+    ['featured_image', 'meta', 'data', 'discoverability', 'allow_comments', 'comments'],
   ),
   page: contract(
     ['title', 'slug', 'content', 'document_type', 'status'],
