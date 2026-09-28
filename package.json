@@ -24,7 +24,7 @@
     "test": "npm run check:schema && node --test"
   },
   "dependencies": {
-    "@zeropress/slug-policy": "0.2.1"
+    "@zeropress/slug-policy": "0.2.2"
   },
   "engines": {
     "node": ">=22.22.0"
