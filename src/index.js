@@ -272,7 +272,15 @@ function resolveEffectivePagePath(site, page) {
     ? site.permalinks.pages
     : '/:slug/';
   if (!pagesPattern.includes(':slug')) return null;
-  return normalizePagePathOrNull(pagesPattern.replaceAll(':slug', slug).replace(/^\/+|\/+$/gu, ''));
+  return normalizePagePathOrNull(trimSlashes(pagesPattern.replaceAll(':slug', slug)));
+}
+
+function trimSlashes(value) {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value[start] === '/') start += 1;
+  while (end > start && value[end - 1] === '/') end -= 1;
+  return value.slice(start, end);
 }
 
 function normalizedSlugOrNull(value) {
@@ -1027,7 +1035,7 @@ function validatePostIndexPath(routePath, path, errors) {
     return;
   }
 
-  const body = routePath.replace(/^\/+|\/+$/g, '');
+  const body = trimSlashes(routePath);
   if (!body) {
     return;
   }
@@ -1068,7 +1076,7 @@ function validatePermalinkPattern(pattern, path, fieldName, errors) {
     return;
   }
 
-  const body = pattern.replace(/^\/+|\/+$/g, '');
+  const body = trimSlashes(pattern);
   if (!body) {
     errors.push(issue('INVALID_PERMALINK_PATTERN', path, 'Permalink pattern must contain path segments'));
     return;

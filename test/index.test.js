@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import {
   PREVIEW_DATA_VERSION,
   assertPreviewData,
@@ -851,6 +852,29 @@ test('validatePreviewData rejects invalid permalink settings', () => {
     assert.ok(issue, `Expected an issue at ${issuePath}`);
     assert.equal(issue.code, issueCode);
   }
+});
+
+test('validatePreviewData rejects long malformed page permalinks without excessive backtracking', () => {
+  const data = createValidPreviewData();
+  data.site.permalinks = { pages: '/:slug/a' + '/'.repeat(500_000) + 'b/' };
+  // Isolate validation so a synchronous regexp regression cannot hang the suite.
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', `
+    import assert from 'node:assert/strict';
+    import { readFileSync } from 'node:fs';
+    import { validatePreviewData } from './src/index.js';
+
+    const result = validatePreviewData(JSON.parse(readFileSync(0, 'utf8')));
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.some((issue) => issue.path === 'site.permalinks.pages'
+      && issue.code === 'INVALID_PERMALINK_PATTERN'));
+  `], {
+    cwd: new URL('..', import.meta.url),
+    input: JSON.stringify(data),
+    encoding: 'utf8',
+    timeout: 10_000,
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test('validatePreviewData rejects invalid page path values', () => {
