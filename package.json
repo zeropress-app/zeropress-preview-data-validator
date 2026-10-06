@@ -28,5 +28,9 @@
   },
   "engines": {
     "node": ">=22.22.0"
+  },
+  "devDependencies": {
+    "prettier": "3.8.2",
+    "prettier-plugin-sort-json": "4.2.0"
   }
 }

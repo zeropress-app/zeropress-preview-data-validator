@@ -1,57 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.zeropress.dev/preview-data/v0.7/schema.json",
-  "title": "ZeroPress Preview Data v0.7",
-  "description": "Canonical site data consumed by ZeroPress Build Core and ZeroPress theme preview tooling.",
-  "markdownDescription": "Canonical site data consumed by ZeroPress Build Core and ZeroPress theme preview tooling.",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["version", "generator", "generated_at", "site", "content"],
-  "properties": {
-    "$schema": {
-      "type": "string",
-      "description": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value.",
-      "markdownDescription": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value."
-    },
-    "version": {
-      "const": "0.7",
-      "description": "Preview-data contract version.",
-      "markdownDescription": "Preview-data contract version."
-    },
-    "generator": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Identifier of the generator that produced this payload.",
-      "markdownDescription": "Identifier of the generator that produced this payload.",
-      "pattern": "\\S"
-    },
-    "generated_at": {
-      "$ref": "#/$defs/dateTime",
-      "description": "RFC 3339 timestamp with Z or a numeric UTC offset indicating when the payload was generated.",
-      "markdownDescription": "RFC 3339 timestamp with Z or a numeric UTC offset indicating when the payload was generated."
-    },
-    "site": {
-      "$ref": "#/$defs/site"
-    },
-    "content": {
-      "$ref": "#/$defs/content"
-    },
-    "menus": {
-      "$ref": "#/$defs/menus"
-    },
-    "widgets": {
-      "$ref": "#/$defs/widgets"
-    },
-    "collections": {
-      "$ref": "#/$defs/collections"
-    },
-    "custom_css": {
-      "$ref": "#/$defs/customCss"
-    },
-    "custom_html": {
-      "$ref": "#/$defs/customHtml"
-    }
-  },
   "$defs": {
     "slugSegment": {
       "type": "string",
@@ -79,7 +28,9 @@
       "description": "Empty string or an HTTP(S) origin without credentials, path, query, or fragment. A trailing root slash is accepted; canonical producers emit URL.origin.",
       "markdownDescription": "Empty string or an HTTP(S) origin without credentials, path, query, or fragment. A trailing root slash is accepted; canonical producers emit URL.origin.",
       "anyOf": [
-        { "const": "" },
+        {
+          "const": ""
+        },
         {
           "type": "string",
           "format": "uri",
@@ -91,7 +42,9 @@
       "description": "Empty string or an HTTP(S) origin without credentials, path, query, or fragment. A trailing root slash is accepted; canonical producers omit it.",
       "markdownDescription": "Empty string or an HTTP(S) origin without credentials, path, query, or fragment. A trailing root slash is accepted; canonical producers omit it.",
       "anyOf": [
-        { "const": "" },
+        {
+          "const": ""
+        },
         {
           "type": "string",
           "format": "uri",
@@ -103,7 +56,9 @@
       "description": "Credential-free absolute HTTP(S) URL or safe single-slash root-relative URL. The root path / is allowed. Bare and dot-relative paths are rejected.",
       "markdownDescription": "Credential-free absolute HTTP(S) URL or safe single-slash root-relative URL. The root path / is allowed. Bare and dot-relative paths are rejected.",
       "anyOf": [
-        { "$ref": "#/$defs/absoluteWebUrl" },
+        {
+          "$ref": "#/$defs/absoluteWebUrl"
+        },
         {
           "type": "string",
           "pattern": "^/(?!/)(?!.*%(?![0-9A-Fa-f]{2}))(?!.*[\\s\\\\\\p{Cc}])(?![^?#]*\\/\\.{1,2}(?:\\/|[?#]|$)).*$"
@@ -116,8 +71,12 @@
       "anyOf": [
         {
           "allOf": [
-            { "$ref": "#/$defs/absoluteWebUrl" },
-            { "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/?#]+/(?=[^?#]*[^/?#])" }
+            {
+              "$ref": "#/$defs/absoluteWebUrl"
+            },
+            {
+              "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/?#]+/(?=[^?#]*[^/?#])"
+            }
           ]
         },
         {
@@ -132,9 +91,20 @@
       "anyOf": [
         {
           "allOf": [
-            { "$ref": "#/$defs/absoluteWebUrl" },
             {
-              "not": { "anyOf": [{ "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/?#]*@" }, { "pattern": "[?#]" }] }
+              "$ref": "#/$defs/absoluteWebUrl"
+            },
+            {
+              "not": {
+                "anyOf": [
+                  {
+                    "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/?#]*@"
+                  },
+                  {
+                    "pattern": "[?#]"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -190,9 +160,15 @@
     },
     "structuredDataValue1": {
       "anyOf": [
-        { "$ref": "#/$defs/structuredDataScalar" },
-        { "$ref": "#/$defs/structuredDataObject1" },
-        { "$ref": "#/$defs/structuredDataArray1" }
+        {
+          "$ref": "#/$defs/structuredDataScalar"
+        },
+        {
+          "$ref": "#/$defs/structuredDataObject1"
+        },
+        {
+          "$ref": "#/$defs/structuredDataArray1"
+        }
       ]
     },
     "structuredDataObject2": {
@@ -214,9 +190,15 @@
     },
     "structuredDataValue2": {
       "anyOf": [
-        { "$ref": "#/$defs/structuredDataScalar" },
-        { "$ref": "#/$defs/structuredDataObject2" },
-        { "$ref": "#/$defs/structuredDataArray2" }
+        {
+          "$ref": "#/$defs/structuredDataScalar"
+        },
+        {
+          "$ref": "#/$defs/structuredDataObject2"
+        },
+        {
+          "$ref": "#/$defs/structuredDataArray2"
+        }
       ]
     },
     "structuredDataObject3": {
@@ -238,9 +220,15 @@
     },
     "structuredDataValue3": {
       "anyOf": [
-        { "$ref": "#/$defs/structuredDataScalar" },
-        { "$ref": "#/$defs/structuredDataObject3" },
-        { "$ref": "#/$defs/structuredDataArray3" }
+        {
+          "$ref": "#/$defs/structuredDataScalar"
+        },
+        {
+          "$ref": "#/$defs/structuredDataObject3"
+        },
+        {
+          "$ref": "#/$defs/structuredDataArray3"
+        }
       ]
     },
     "structuredDataObject4": {
@@ -262,9 +250,15 @@
     },
     "structuredDataValue4": {
       "anyOf": [
-        { "$ref": "#/$defs/structuredDataScalar" },
-        { "$ref": "#/$defs/structuredDataObject4" },
-        { "$ref": "#/$defs/structuredDataArray4" }
+        {
+          "$ref": "#/$defs/structuredDataScalar"
+        },
+        {
+          "$ref": "#/$defs/structuredDataObject4"
+        },
+        {
+          "$ref": "#/$defs/structuredDataArray4"
+        }
       ]
     },
     "permalinks": {
@@ -303,7 +297,9 @@
     },
     "postPermalinkPattern": {
       "allOf": [
-        { "$ref": "#/$defs/permalinkPattern" },
+        {
+          "$ref": "#/$defs/permalinkPattern"
+        },
         {
           "type": "string",
           "pattern": "^(?!.*\\.html(?:/|$))(?=.*(?:/(?::slug|:public_id))(?:/|$))/(?:(?=[\\p{L}\\p{M}\\p{Nd}._-]*[\\p{L}\\p{Nd}])(?!\\.)(?![\\p{L}\\p{M}\\p{Nd}._-]*\\.\\.)[\\p{L}\\p{M}\\p{Nd}_-](?:[\\p{L}\\p{M}\\p{Nd}_-]|\\.(?=[\\p{L}\\p{M}\\p{Nd}_-]))*|:slug|:public_id|:year|:month|:day)(?:/(?:(?=[\\p{L}\\p{M}\\p{Nd}._-]*[\\p{L}\\p{Nd}])(?!\\.)(?![\\p{L}\\p{M}\\p{Nd}._-]*\\.\\.)[\\p{L}\\p{M}\\p{Nd}_-](?:[\\p{L}\\p{M}\\p{Nd}_-]|\\.(?=[\\p{L}\\p{M}\\p{Nd}_-]))*|:slug|:public_id|:year|:month|:day))*/?$",
@@ -313,7 +309,9 @@
     },
     "slugPermalinkPattern": {
       "allOf": [
-        { "$ref": "#/$defs/permalinkPattern" },
+        {
+          "$ref": "#/$defs/permalinkPattern"
+        },
         {
           "type": "string",
           "pattern": "^(?!.*\\.html(?:/|$))(?=.*(?:/:slug)(?:/|$))/(?:(?=[\\p{L}\\p{M}\\p{Nd}._-]*[\\p{L}\\p{Nd}])(?!\\.)(?![\\p{L}\\p{M}\\p{Nd}._-]*\\.\\.)[\\p{L}\\p{M}\\p{Nd}_-](?:[\\p{L}\\p{M}\\p{Nd}_-]|\\.(?=[\\p{L}\\p{M}\\p{Nd}_-]))*|:slug)(?:/(?:(?=[\\p{L}\\p{M}\\p{Nd}._-]*[\\p{L}\\p{Nd}])(?!\\.)(?![\\p{L}\\p{M}\\p{Nd}._-]*\\.\\.)[\\p{L}\\p{M}\\p{Nd}_-](?:[\\p{L}\\p{M}\\p{Nd}_-]|\\.(?=[\\p{L}\\p{M}\\p{Nd}_-]))*|:slug))*/?$",
@@ -351,18 +349,43 @@
       "oneOf": [
         {
           "required": ["type"],
-          "properties": { "type": { "const": "theme_index" } },
-          "not": { "anyOf": [{ "required": ["page_path"] }, { "required": ["html"] }] }
+          "properties": {
+            "type": {
+              "const": "theme_index"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": ["page_path"]
+              },
+              {
+                "required": ["html"]
+              }
+            ]
+          }
         },
         {
           "required": ["type", "page_path"],
-          "properties": { "type": { "const": "page" } },
-          "not": { "required": ["html"] }
+          "properties": {
+            "type": {
+              "const": "page"
+            }
+          },
+          "not": {
+            "required": ["html"]
+          }
         },
         {
           "required": ["type", "html"],
-          "properties": { "type": { "const": "standalone_html" } },
-          "not": { "required": ["page_path"] }
+          "properties": {
+            "type": {
+              "const": "standalone_html"
+            }
+          },
+          "not": {
+            "required": ["page_path"]
+          }
         }
       ]
     },
@@ -536,9 +559,19 @@
         {
           "if": {
             "required": ["media_delivery_mode"],
-            "properties": { "media_delivery_mode": { "const": "media_domain" } }
+            "properties": {
+              "media_delivery_mode": {
+                "const": "media_domain"
+              }
+            }
           },
-          "then": { "properties": { "media_origin": { "minLength": 1 } } }
+          "then": {
+            "properties": {
+              "media_origin": {
+                "minLength": 1
+              }
+            }
+          }
         }
       ]
     },
@@ -605,11 +638,21 @@
         }
       },
       "anyOf": [
-        { "required": ["icon"] },
-        { "required": ["icon_dark"] },
-        { "required": ["svg"] },
-        { "required": ["png"] },
-        { "required": ["apple_touch_icon"] }
+        {
+          "required": ["icon"]
+        },
+        {
+          "required": ["icon_dark"]
+        },
+        {
+          "required": ["svg"]
+        },
+        {
+          "required": ["png"]
+        },
+        {
+          "required": ["apple_touch_icon"]
+        }
       ]
     },
     "siteLogo": {
@@ -673,9 +716,22 @@
         {
           "if": {
             "required": ["enabled"],
-            "properties": { "enabled": { "const": true } }
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
           },
-          "then": { "anyOf": [{ "required": ["signup_url"] }, { "required": ["embed_url"] }] }
+          "then": {
+            "anyOf": [
+              {
+                "required": ["signup_url"]
+              },
+              {
+                "required": ["embed_url"]
+              }
+            ]
+          }
         }
       ]
     },
@@ -1019,9 +1075,15 @@
         {
           "if": {
             "required": ["allow_comments"],
-            "properties": { "allow_comments": { "const": true } }
+            "properties": {
+              "allow_comments": {
+                "const": true
+              }
+            }
           },
-          "then": { "required": ["public_id"] }
+          "then": {
+            "required": ["public_id"]
+          }
         }
       ]
     },
@@ -1235,13 +1297,25 @@
       "oneOf": [
         {
           "required": ["type", "slug"],
-          "properties": { "type": { "const": "post" } },
-          "not": { "required": ["path"] }
+          "properties": {
+            "type": {
+              "const": "post"
+            }
+          },
+          "not": {
+            "required": ["path"]
+          }
         },
         {
           "required": ["type", "path"],
-          "properties": { "type": { "const": "page" } },
-          "not": { "required": ["slug"] }
+          "properties": {
+            "type": {
+              "const": "page"
+            }
+          },
+          "not": {
+            "required": ["slug"]
+          }
         }
       ]
     },
@@ -1328,16 +1402,26 @@
         }
       },
       "anyOf": [
-        { "required": ["head_end"] },
-        { "required": ["body_end"] }
+        {
+          "required": ["head_end"]
+        },
+        {
+          "required": ["body_end"]
+        }
       ]
     },
     "zeroPressCommentsItemPolicy": {
       "if": {
         "required": ["allow_comments"],
-        "properties": { "allow_comments": { "const": true } }
+        "properties": {
+          "allow_comments": {
+            "const": true
+          }
+        }
       },
-      "then": { "required": ["comments"] }
+      "then": {
+        "required": ["comments"]
+      }
     },
     "contentWithZeroPressCommentsPolicy": {
       "type": "object",
@@ -1402,6 +1486,57 @@
       }
     }
   },
+  "title": "ZeroPress Preview Data v0.7",
+  "description": "Canonical site data consumed by ZeroPress Build Core and ZeroPress theme preview tooling.",
+  "markdownDescription": "Canonical site data consumed by ZeroPress Build Core and ZeroPress theme preview tooling.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "generator", "generated_at", "site", "content"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value.",
+      "markdownDescription": "Optional JSON Schema URI or path used by editors and tooling. ZeroPress core does not interpret this value."
+    },
+    "version": {
+      "const": "0.7",
+      "description": "Preview-data contract version.",
+      "markdownDescription": "Preview-data contract version."
+    },
+    "generator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the generator that produced this payload.",
+      "markdownDescription": "Identifier of the generator that produced this payload.",
+      "pattern": "\\S"
+    },
+    "generated_at": {
+      "$ref": "#/$defs/dateTime",
+      "description": "RFC 3339 timestamp with Z or a numeric UTC offset indicating when the payload was generated.",
+      "markdownDescription": "RFC 3339 timestamp with Z or a numeric UTC offset indicating when the payload was generated."
+    },
+    "site": {
+      "$ref": "#/$defs/site"
+    },
+    "content": {
+      "$ref": "#/$defs/content"
+    },
+    "menus": {
+      "$ref": "#/$defs/menus"
+    },
+    "widgets": {
+      "$ref": "#/$defs/widgets"
+    },
+    "collections": {
+      "$ref": "#/$defs/collections"
+    },
+    "custom_css": {
+      "$ref": "#/$defs/customCss"
+    },
+    "custom_html": {
+      "$ref": "#/$defs/customHtml"
+    }
+  },
   "allOf": [
     {
       "if": {
@@ -1414,12 +1549,24 @@
               "comments": {
                 "type": "object",
                 "required": ["enabled"],
-                "properties": { "enabled": { "const": true } },
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
                 "anyOf": [
-                  { "not": { "required": ["provider"] } },
+                  {
+                    "not": {
+                      "required": ["provider"]
+                    }
+                  },
                   {
                     "required": ["provider"],
-                    "properties": { "provider": { "const": "zeropress" } }
+                    "properties": {
+                      "provider": {
+                        "const": "zeropress"
+                      }
+                    }
                   }
                 ]
               }
@@ -1427,7 +1574,13 @@
           }
         }
       },
-      "then": { "properties": { "content": { "$ref": "#/$defs/contentWithZeroPressCommentsPolicy" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/contentWithZeroPressCommentsPolicy"
+          }
+        }
+      }
     }
   ],
   "examples": [
@@ -1524,8 +1677,14 @@
             },
             "data": {
               "facts": [
-                { "label": "Role", "value": "Writing" },
-                { "label": "Year", "value": "2026" }
+                {
+                  "label": "Role",
+                  "value": "Writing"
+                },
+                {
+                  "label": "Year",
+                  "value": "2026"
+                }
               ],
               "stack": ["ZeroPress", "Cloudflare"]
             },
@@ -1552,8 +1711,14 @@
             },
             "data": {
               "swatches": [
-                { "name": "Ink", "value": "#111111" },
-                { "name": "Paper", "value": "#ffffff" }
+                {
+                  "name": "Ink",
+                  "value": "#111111"
+                },
+                {
+                  "name": "Paper",
+                  "value": "#ffffff"
+                }
               ]
             },
             "status": "published",
@@ -1636,8 +1801,14 @@
           "title": "Cover Story",
           "description": "Curated content for a featured area.",
           "items": [
-            { "type": "post", "slug": "hello-zeropress" },
-            { "type": "page", "path": "about" }
+            {
+              "type": "post",
+              "slug": "hello-zeropress"
+            },
+            {
+              "type": "page",
+              "path": "about"
+            }
           ]
         }
       },
