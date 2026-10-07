@@ -48,7 +48,7 @@ Key ordering preserves array order and values. It does not validate or normalize
 ## Data contract
 
 - [Preview Data v0.7 specification](https://zeropress.dev/reference/preview-data/specs/v0.7/)
-- [JSON Schema](https://schemas.zeropress.dev/preview-data/v0.7/schema.json)
+- [JSON Schema](https://www.schemastore.org/zeropress-preview-data-0.7.json)
 - [TypeScript definitions](src/index.d.ts)
 
 Use the runtime validator for full validation, including cross-record references,
