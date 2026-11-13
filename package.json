@@ -13,6 +13,10 @@
       "types": "./src/chunks.d.ts",
       "default": "./src/chunks.js"
     },
+    "./content-policy": {
+      "types": "./src/content-policy.d.ts",
+      "default": "./src/content-policy.js"
+    },
     "./node": {
       "types": "./src/chunks-node.d.ts",
       "default": "./src/chunks-node.js"

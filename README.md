@@ -118,6 +118,39 @@ exposed without retaining values. Always close the store in `finally`. It is scr
 storage, not a public artifact or a persistent format. Memory is proportional to
 catalog metadata plus bounded content batches, not constant for arbitrary sites.
 
+## Operational body policy helper
+
+`@zeropress/preview-data-validator/content-policy` exports portable UTF-8 counting
+and diagnostics. Schema validation alone does not enforce product body policies.
+
+- `normalizeBodyPolicy({ maxBodyBytes })` returns an explicit policy. Omission
+  or `null` means no ceiling; finite values must be positive integers below
+  `Number.MAX_SAFE_INTEGER`, reserving one byte for an overflow sentinel.
+- `checkBodySize(content, id, representation?, policy?)` returns accepted bytes
+  or throws `ContentBodySizeError` (`CONTENT_BODY_TOO_LARGE`).
+  `assertBodyBytes(bytes, id, representation?, policy?)` checks an existing count.
+- `new BodyByteCounter(policy?)` counts string chunks; call `finish()` for a
+  trailing surrogate. Finite counts saturate at maximum + 1 and expose
+  `exceeded`. Without a maximum, the counter counts the full body.
+- **All helpers default to no body ceiling.** Omitting the policy, passing `{}`,
+  or setting `maxBodyBytes` to `undefined` or `null` has the same behavior.
+  Pass a finite `maxBodyBytes` to enforce an explicit ceiling; a body exactly
+  at that ceiling is accepted.
+- `BODY_WARNING_BYTES` remains 262144. Call the warning collector once per
+  document with its largest checked representation; it returns at most one
+  aggregate and 20 sanitized identifiers.
+
+```js
+import { checkBodySize } from '@zeropress/preview-data-validator/content-policy';
+
+checkBodySize(content, 'post:1'); // Count the full body without a ceiling.
+checkBodySize(content, 'post:1', 'content', { maxBodyBytes: 4 * 1024 * 1024 });
+```
+
+The helpers do not alter content, fetch schemas, log or use the filesystem.
+Counting does not allocate a second complete UTF-8 buffer. Existing resource
+guards remain necessary; object callers may already hold large input in memory.
+
 ## License
 
 MIT
