@@ -32,7 +32,7 @@ import {
 } from './contract-definitions.js';
 
 export { PREVIEW_DATA_VERSION } from './contract-definitions.js';
-export { canonicalizePreviewDataKeyOrder } from './canonicalize.js';
+export { canonicalizePreviewDataKeyOrder, canonicalizePreviewDataRecord } from './canonicalize.js';
 
 export function validatePreviewData(data) {
   const errors = [];
@@ -85,6 +85,127 @@ export function assertPreviewData(data) {
 
 export function isPreviewData(data) {
   return validatePreviewData(data).ok;
+}
+
+
+/** Validate the non-content portion without inventing empty content arrays. */
+export function validatePreviewDataHeader(data) {
+  const errors = [];
+  const contract = OBJECT_CONTRACTS.root;
+  validateClosedObject(data, '', errors, {
+    required: contract.required.filter((key) => key !== 'content'),
+    optional: contract.optional,
+    allowed: contract.allowed.filter((key) => key !== 'content'),
+  });
+  if (isObject(data)) {
+    if (hasOwn(data, '$schema')) validateString(data.$schema, '$schema', 'INVALID_SCHEMA_HINT', errors);
+    validateLiteral(data.version, PREVIEW_DATA_VERSION, 'version', 'INVALID_VERSION', errors);
+    validateNonEmptyString(data.generator, 'generator', 'INVALID_GENERATOR', errors);
+    validateDateTimeString(data.generated_at, 'generated_at', 'INVALID_GENERATED_AT', errors);
+    validateSite(data.site, 'site', errors);
+    for (const [key, validate] of Object.entries({
+      menus: validateMenus, widgets: validateWidgets, collections: validateCollections,
+      custom_css: validateCustomCss, custom_html: validateCustomHtml,
+    })) {
+      if (hasOwn(data, key)) validate(data[key], key, errors);
+    }
+  }
+  return { ok: errors.length === 0, errors, warnings: [] };
+}
+
+export const PREVIEW_CONTENT_COLLECTIONS = Object.freeze(['authors', 'posts', 'pages', 'categories', 'tags', 'media']);
+
+/** Retains identities/references, never record bodies. add() returns local errors. */
+export function createPreviewDataValidationSession(header) {
+  const headerResult = validatePreviewDataHeader(header);
+  const counts = Object.fromEntries(PREVIEW_CONTENT_COLLECTIONS.map((key) => [key, 0]));
+  const authorIds = new Set();
+  const postIds = new Set();
+  const pageIds = new Set();
+  const mediaSources = new Set();
+  const postSlugs = new Set();
+  const pagePaths = new Set();
+  const authorReferences = [];
+  const policy = resolveContentCommentPolicy(header?.site);
+  let finished = false;
+  let firstRecordError;
+  return {
+    headerResult,
+    counts,
+    add(collection, record) {
+      if (finished) throw new Error('Preview Data validation session is finished');
+      if (!PREVIEW_CONTENT_COLLECTIONS.includes(collection)) throw new Error('Unknown Preview Data collection');
+      const path = `content.${collection}[${counts[collection]++}]`;
+      const errors = [];
+      const unique = (set, value, key, code, message) => {
+        if (set.has(value)) errors.push(issue(code, `${path}.${key}`, message));
+        else set.add(value);
+      };
+      if (collection === 'authors') {
+        validatePreviewAuthor(record, path, errors);
+        if (isObject(record) && typeof record.id === 'string' && record.id.trim()) {
+          unique(authorIds, record.id, 'id', 'DUPLICATE_AUTHOR_ID', 'Author ids must be unique');
+        }
+      } else if (collection === 'posts') {
+        // References can point into later chunks/collections; resolve at finish().
+        validatePreviewPost(record, path, errors, { has: () => true }, policy);
+        if (isObject(record)) {
+          if (Number.isInteger(record.public_id) && record.public_id > 0) {
+            unique(postIds, record.public_id, 'public_id', 'DUPLICATE_POST_PUBLIC_ID', 'Post public_id values must be unique');
+          }
+          const slug = normalizedSlugOrNull(record.slug);
+          if (slug !== null) unique(postSlugs, slug, 'slug', 'DUPLICATE_POST_SLUG', 'Post slug values must be unique after NFC normalization');
+          if (typeof record.author_id === 'string' && record.author_id.trim()) authorReferences.push({ id: record.author_id, path: `${path}.author_id` });
+        }
+      } else if (collection === 'pages') {
+        validatePreviewPage(record, path, errors, policy);
+        if (isObject(record)) {
+          if (Number.isInteger(record.public_id) && record.public_id > 0) {
+            unique(pageIds, record.public_id, 'public_id', 'DUPLICATE_PAGE_PUBLIC_ID', 'Page public_id values must be unique');
+          }
+          const effectivePath = resolveEffectivePagePath(header?.site || {}, record);
+          if (effectivePath !== null) unique(pagePaths, effectivePath, hasOwn(record, 'path') ? 'path' : 'slug', 'DUPLICATE_PAGE_PATH', 'Effective Page paths must be unique after NFC normalization');
+        }
+      } else if (collection === 'categories') validatePreviewCategory(record, path, errors);
+      else if (collection === 'tags') validatePreviewTag(record, path, errors);
+      else {
+        validatePreviewMedia(record, path, errors);
+        if (isObject(record) && typeof record.src === 'string') unique(mediaSources, record.src, 'src', 'DUPLICATE_MEDIA_SRC', 'Media src values must be unique');
+      }
+      if (errors.length && !firstRecordError) firstRecordError = errors[0];
+      return { ok: errors.length === 0, errors, warnings: [] };
+    },
+    finish() {
+      if (finished) throw new Error('Preview Data validation session is finished');
+      finished = true;
+      const errors = [...headerResult.errors, ...(firstRecordError ? [firstRecordError] : [])];
+      for (const reference of authorReferences) {
+        if (!authorIds.has(reference.id)) errors.push(issue('INVALID_POST_AUTHOR_REFERENCE', reference.path, 'Referenced author_id does not exist'));
+      }
+      if (isObject(header?.site)) validateIdentityReferences(header, postSlugs, pagePaths, errors);
+      return { ok: errors.length === 0, errors, warnings: [] };
+    },
+  };
+}
+
+/** Small-input adapter. It does not copy or materialize another full document. */
+export function createObjectPreviewDataSource(data) {
+  const { content, ...header } = data;
+  if (!isObject(content)) throw new Error('Invalid preview-data content');
+  const keys = Object.keys(content);
+  if (keys.some((key) => !PREVIEW_CONTENT_COLLECTIONS.includes(key))
+      || PREVIEW_CONTENT_COLLECTIONS.slice(0, 5).some((key) => !Array.isArray(content[key]))
+      || (hasOwn(content, 'media') && !Array.isArray(content.media))) {
+    throw new Error('Invalid preview-data collections');
+  }
+  return {
+    header,
+    collections: PREVIEW_CONTENT_COLLECTIONS.filter((key) => hasOwn(content, key)),
+    async *records(collection) {
+      for (const [index, value] of (content[collection] || []).entries()) yield { value, index };
+    },
+    async close() {},
+  };
 }
 
 function validateSite(site, path, errors) {
@@ -226,6 +347,10 @@ function validateContentIdentitiesAndReferences(data, errors) {
     }
   }
 
+  validateIdentityReferences(data, postSlugs, pagePaths, errors);
+}
+
+function validateIdentityReferences(data, postSlugs, pagePaths, errors) {
   const frontPage = data.site.front_page;
   if (isObject(frontPage) && frontPage.type === 'page' && typeof frontPage.page_path === 'string') {
     const pagePath = normalizePagePathOrNull(frontPage.page_path);

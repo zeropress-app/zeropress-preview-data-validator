@@ -175,6 +175,13 @@ export function canonicalizePreviewDataKeyOrder(value) {
   return canonicalizeKnownRecord(value, 'root');
 }
 
+/** Canonicalize a single collection record using exactly the document rules. */
+export function canonicalizePreviewDataRecord(collection, value) {
+  const name = { authors: 'author', posts: 'post', pages: 'page', categories: 'category', tags: 'tag', media: 'media' }[collection];
+  if (!name) throw new Error('Unknown Preview Data collection');
+  return canonicalizeKnownRecord(value, name);
+}
+
 function canonicalizeKnownRecord(value, name) {
   if (!isPlainRecord(value)) {
     return canonicalizeOpenValue(value);

@@ -278,3 +278,33 @@ export function canonicalizePreviewDataKeyOrder<T>(data: T): T;
 export function validatePreviewData(data: unknown): PreviewDataValidationResult;
 export function assertPreviewData<T>(data: T): T;
 export function isPreviewData(data: unknown): data is PreviewDataV07;
+
+export type PreviewDataHeader = Omit<PreviewDataV07, 'content'>;
+export type PreviewContentCollection = keyof PreviewContentData;
+export type PreviewContentRecord = PreviewContentData[PreviewContentCollection] extends infer A ? A extends Array<infer T> ? T : never : never;
+export interface PreviewDataRecordEntry {
+  value: PreviewContentRecord;
+  index: number;
+  location?: { file: string; index: number };
+}
+export interface PreviewDataSource {
+  readonly header: PreviewDataHeader;
+  readonly collections: readonly PreviewContentCollection[];
+  records(collection: PreviewContentCollection): AsyncIterable<PreviewDataRecordEntry>;
+  close(): Promise<void>;
+}
+export interface PreviewDataWorkStore {
+  put(value: unknown): Promise<unknown>;
+  get(reference: unknown): Promise<any>;
+  close(): Promise<void>;
+}
+export const PREVIEW_CONTENT_COLLECTIONS: readonly PreviewContentCollection[];
+export function canonicalizePreviewDataRecord<T>(collection: PreviewContentCollection, value: T): T;
+export function validatePreviewDataHeader(data: unknown): PreviewDataValidationResult;
+export function createObjectPreviewDataSource(data: PreviewDataV07): PreviewDataSource;
+export function createPreviewDataValidationSession(header: unknown): {
+  headerResult: PreviewDataValidationResult;
+  counts: Record<PreviewContentCollection, number>;
+  add(collection: PreviewContentCollection, record: unknown): PreviewDataValidationResult;
+  finish(): PreviewDataValidationResult;
+};
